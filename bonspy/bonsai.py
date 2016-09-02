@@ -5,6 +5,8 @@ from __future__ import (
     absolute_import, unicode_literals
 )
 
+import base64
+
 from collections import deque
 
 import networkx as nx
@@ -31,6 +33,10 @@ class BonsaiTree(nx.DiGraph):
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__()
+
+    @property
+    def bonsai_encoded(self):
+        return base64.b64encode(self.bonsai.encode('ascii')).decode()
 
     def _get_root(self):
         for node in self.nodes():

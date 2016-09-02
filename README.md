@@ -270,11 +270,6 @@ Prints out
 
 ## Example: Uploading the Bonsai output to AppNexus
 
-Base64-encode the tree:
-
-    import base64
-    encoded = base64.b64encode(tree.bonsai)
-
 Use our [`nexusadspy` library](https://github.com/markovianhq/nexusadspy) to
 send the encoded `tree` to the AppNexus parser and check
 for any syntactical errors:
@@ -282,10 +277,10 @@ for any syntactical errors:
     from nexusadspy import AppnexusClient
 
     check_tree = {
-                   "custom-model-parser": {
-                        "model_text": encoded
-                        }
-                   }
+                     "custom-model-parser": {
+                         "model_text": tree.bonsai_encoded
+                     }
+                 }
 
     with AppnexusClient('.appnexus_auth.json') as client:
         r = client.request('custom-model-parser', 'POST', data=check_tree)
