@@ -11,6 +11,7 @@ setup(
     version='0.2',
     description='Library that converts bidding trees to the AppNexus Bonsai language.',
     author='Alexander Volkmann, Georg Walther',
+    author_email='contact@markovian.com',
     packages=['bonspy'],
     package_dir={'bonspy': 'bonspy'},
     url='https://github.com/markovianhq/bonspy',
