@@ -8,13 +8,14 @@ except ImportError:
 
 setup(
     name='bonspy',
-    version='0.0.1',
+    version='0.2.3',
     description='Library that converts bidding trees to the AppNexus Bonsai language.',
     author='Alexander Volkmann, Georg Walther',
+    author_email='contact@markovian.com',
     packages=['bonspy'],
     package_dir={'bonspy': 'bonspy'},
-    url='https://github.com/mathemads/bonspy',
-    download_url='https://github.com/mathemads/bonspy/tarball/master',
+    url='https://github.com/markovianhq/bonspy',
+    download_url='https://github.com/markovianhq/bonspy/tarball/master',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: BSD License',

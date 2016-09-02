@@ -5,11 +5,16 @@ from __future__ import (
     absolute_import, unicode_literals
 )
 
+import base64
+
 from collections import deque
 
 import networkx as nx
 
 from bonspy.features import get_validated
+
+
+RANGE_EPSILON = 1
 
 
 class BonsaiTree(nx.DiGraph):
@@ -34,6 +39,10 @@ class BonsaiTree(nx.DiGraph):
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__()
+
+    @property
+    def bonsai_encoded(self):
+        return base64.b64encode(self.bonsai.encode('ascii')).decode()
 
     def _validate_feature_values(self):
         self._validate_node_states()
@@ -192,12 +201,12 @@ class BonsaiTree(nx.DiGraph):
                     right_bound=right_bound
                 )
             elif (left_bound is not None) and (right_bound is None):
-                out = '{indent}case ({left_bound}):\n'.format(
+                out = '{indent}case ({left_bound} ..):\n'.format(
                     indent=indent,
-                    left_bound=left_bound
+                    left_bound=left_bound + RANGE_EPSILON
                 )
             elif (left_bound is None) and (right_bound is not None):
-                out = '{indent}case ({right_bound}):\n'.format(
+                out = '{indent}case (.. {right_bound}):\n'.format(
                     indent=indent,
                     right_bound=right_bound
                 )
@@ -249,7 +258,8 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_sibling_type(self, parent, child):
         sibling_edges = self._get_edge_siblings(parent, child)
-        sibling_types = [self.edge[parent][child]['type'] for parent, child in sibling_edges]
+        sibling_types = [self.edge[sibling_parent][sibling_child]['type']
+                         for sibling_parent, sibling_child in sibling_edges]
 
         return sibling_types[0]
 
@@ -275,8 +285,8 @@ class BonsaiTree(nx.DiGraph):
     @staticmethod
     def _is_numerical(x):
         try:
-            _ = int(x)
-            _ = float(x)
+            int(x)
+            float(x)
             return True
         except ValueError:
             return False

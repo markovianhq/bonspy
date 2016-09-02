@@ -1,0 +1,39 @@
+sudo: false
+
+notifications:
+  - email: false
+
+language: python
+
+os:
+  - linux
+
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+
+install:
+  - pip install -r requirements.txt
+  - pip install -r requirements_test.txt
+  - pip install pytest-cov coveralls
+
+before_script:
+  - flake8 --show-source .
+
+script:
+  - py.test --cov=bonspy .
+
+after_success:
+  - coveralls
+  - bash <(curl -s https://codecov.io/bash)
+
+deploy:
+  provider: pypi
+  user: waltherg
+  password:
+    secure: TzR/rGNwLAfV6r6WrGqblCWXpmik43slBgOnL6MbKd6DILHJKgxHjmqQmSwbC1ce1AQWmEKW4oJtraAbDEaNMQ3YBx9EZ0oOKnaZgevDcMULNy/Ax5BUM3p/oTbdHHAE4pqnXlWubdovueXxH3Vq87aSIIXHH+Y5AM1Y/Bh7Qr4wJcWfbAREPVQ6Tao6FtmBZLUskQ2AR2g6X2H8yGnPiRvfk0qxml+etqhS3ARRTN7jm3mWLzGBukV3Louw/9Cuch6y0YlsDKhTbuXJyk8r4KVH5STVOXrYoAvbXjHAdui+o0pcV4s2aM6EXT7upCRDJZwsWZMpW0apX8L4DGAuE84NlQi1kL6vvYF14b/pg6FCmwaY9HY2/iAg+oCjz9wZlL0BLQjQKzysEg1NQTW4pzXRup8mzOVNEtO6C4mFzdYd71EEWV0pRm6r1IOnHYws7Bt6QumbXiH+vGqnNVnlD3cXmS4yn3kMZmj8o3l7GQ52LD6+J4whtJYRHzqTaUDucw6/7LSz4jZ8RXacsCDBQgdLSy7MDTC/n8kZfa8edyblNt1MRHxd7H0f2eQGHAOvpCk1xYsEN3JPWos3V0eDeLpDIJQJyuyYqKbC0bO5Iz0T0FxehkylTRbE/OlJjOlZxTm2cXbh/Rt3ZJ/ZpnhjpC8ET+TCXF4GrP9VrBrHsmQ=
+  on:
+    tags: true
+    branch: master
