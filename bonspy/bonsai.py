@@ -254,8 +254,8 @@ class BonsaiTree(nx.DiGraph):
     @staticmethod
     def _is_numerical(x):
         try:
-            _ = int(x)
-            _ = float(x)
+            int(x)
+            float(x)
             return True
         except ValueError:
             return False

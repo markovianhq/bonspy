@@ -19,11 +19,14 @@ class LogisticConverter():
 
     Attributes:
         features (list): List of feature names.
-        vocabulary (dict): `vocabulary_` attribute of your trained `DictVectorizer` (http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html)
-        weights (list): `coef_` attribute of your trained `SGDClassifier(loss='log', ...)` (http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html)
+        vocabulary (dict): `vocabulary_` attribute of your trained `DictVectorizer`
+            (http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html)
+        weights (list): `coef_` attribute of your trained `SGDClassifier(loss='log', ...)`
+            (http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html)
         intercept (float): `intercept_` attribute of your trained `SGDClassifier(loss='log', ...)`
         types (dict): Variable assignment type definitions: 'assignment', 'range', or membership.
-        base_bid (float): Constant value that the output of the trained classifier is multiplied with to produce the output (bid).
+        base_bid (float): Constant value that the output of the trained classifier
+            is multiplied with to produce the output (bid).
         buckets (dict): Optional. Map for range features from bucket ID's to their bounds.
     """
 
@@ -75,7 +78,7 @@ class LogisticConverter():
             index = len(parent)
 
             try:
-                next_feature = features[index+1]
+                next_feature = features[index + 1]
             except IndexError:
                 continue
 
@@ -194,4 +197,4 @@ class LogisticConverter():
 
     @staticmethod
     def _sigmoid(x):
-        return 1./(1. + math.exp(-x))
+        return 1. / (1. + math.exp(-x))
