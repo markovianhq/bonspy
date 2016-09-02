@@ -228,7 +228,8 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_sibling_type(self, parent, child):
         sibling_edges = self._get_edge_siblings(parent, child)
-        sibling_types = [self.edge[parent][child]['type'] for parent, child in sibling_edges]
+        sibling_types = [self.edge[sibling_parent][sibling_child]['type']
+                         for sibling_parent, sibling_child in sibling_edges]
 
         return sibling_types[0]
 
