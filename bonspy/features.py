@@ -56,6 +56,9 @@ def _get_ceiling(feature, value):
         return min(CEILINGS[feature], value)
     except KeyError:
         return value
+    except TypeError:
+        # `value` is None, return None for open intervals
+        return value
 
 
 def _get_floor(feature, value):
@@ -63,10 +66,16 @@ def _get_floor(feature, value):
         return max(FLOORS[feature], value)
     except KeyError:
         return value
+    except TypeError:
+        # `value` is None, return None for open intervals
+        return value
 
 
 def _type_cast(feature, value):
     try:
         return TYPES[feature](value)
     except KeyError:
+        return value
+    except TypeError:
+        # `value` is None
         return value
