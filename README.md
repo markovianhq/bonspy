@@ -135,40 +135,42 @@ The Bonsai text representation of the above `tree` is stored in its `.bonsai` at
     
 prints out
 
-    if segment 12345:
-        if segment 12345 age <= 10:
-            if geo in ('US', 'BR'):
-                0.2000
-            elif geo in ('UK', 'DE'):
-                0.1000
-            else:
+    if segment[12345]:
+        switch segment[12345].age:
+            case (.. 10):
+                if country in ("GB","DE"):
+                    0.1000
+                elif country in ("US","BR"):
+                    0.2000
+                else:
+                    0.0500
+            case (11 ..):
+                if country in ("GB","DE"):
+                    0.1000
+                elif country in ("US","BR"):
+                    0.2000
+                else:
+                    0.0500
+            default:
                 0.0500
-        elif segment 12345 age > 10:
-            if geo in ('UK', 'DE'):
-                0.1000
-            elif geo in ('US', 'BR'):
-                0.2000
-            else:
+    elif segment[67890]:
+        switch segment[67890].age:
+            case (.. 10):
+                if country in ("GB","DE"):
+                    0.1000
+                elif country in ("US","BR"):
+                    0.2000
+                else:
+                    0.0500
+            case (11 ..):
+                if country in ("GB","DE"):
+                    0.1000
+                elif country in ("US","BR"):
+                    0.2000
+                else:
+                    0.0500
+            default:
                 0.0500
-        else:
-            0.0500
-    elif segment 67890:
-        if segment 67890 age <= 10:
-            if geo in ('US', 'BR'):
-                0.2000
-            elif geo in ('UK', 'DE'):
-                0.1000
-            else:
-                0.0500
-        elif segment 67890 age > 10:
-            if geo in ('UK', 'DE'):
-                0.1000
-            elif geo in ('US', 'BR'):
-                0.2000
-            else:
-                0.0500
-        else:
-            0.0500
     else:
         0.0500
 
