@@ -5,5 +5,3 @@ from __future__ import (
     absolute_import, unicode_literals
 )
 
-from bonspy.bonsai import BonsaiTree
-from bonspy.logistic import LogisticConverter

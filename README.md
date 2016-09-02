@@ -1,7 +1,11 @@
 # Bonspy
 
+[![PyPI version](https://badge.fury.io/py/bonspy.svg)](https://badge.fury.io/py/bonspy)
+[![Build Status](https://travis-ci.org/markovianhq/bonspy.svg)](https://travis-ci.org/markovianhq/bonspy)
+[![codecov](https://codecov.io/gh/markovianhq/bonspy/branch/master/graph/badge.svg)](https://codecov.io/gh/markovianhq/bonspy)
+
 Bonspy converts bidding trees from various input formats to the
-[Bonsai bidding language of AppNexus](http://blog.appnexus.com/2015/introducing-appnexus-programmable-bidder/).
+[Bonsai bidding language of AppNexus](http://developers.appnexus.com/introduction-to-the-bonsai-decision-tree-language/).
 
 As intermediate format bonspy constructs a [NetworkX](https://networkx.github.io/) graph from which it produces the
 Bonsai language output.
@@ -10,11 +14,55 @@ Bidding trees may also be constructed directly in this NetworkX format (see firs
 At present bonspy provides a converter from trained [sklearn](http://scikit-learn.org/stable/) logistic regression
 classifiers with categorical, one-hot encoded features to the intermediate NetworkX format (see second example below).
 
-In combination with our AppNexus API wrapper [`nexusadspy`](https://github.com/mathemads/nexusadspy) it is also
+In combination with our AppNexus API wrapper [`nexusadspy`](https://github.com/markovianhq/nexusadspy) it is also
 straightforward to check your bidding tree for syntactical errors and upload it for real-time bidding (third example below).
 
 This package was developed and tested on Python 3.5.
 However, the examples below have been tested successfully in Python 2.7.
+
+## Installation
+
+### Installation as regular library
+
+Install the latest release from PyPI:
+
+    $ pip install bonspy
+
+To install the latest `master` branch commit of bonspy:
+
+    $ pip install -e git+git@github.com:markovianhq/bonspy.git@master#egg=bonspy
+
+To install a specific commit, e.g. `97c41e9`:
+
+    $ pip install -e git+git@github.com:markovianhq/bonspy.git@97c41e9#egg=bonspy
+
+### Installation for development
+
+To install bonspy for local development you may want to create a virtual environment.
+Assuming you use [Continuum Anaconda](https://www.continuum.io/downloads), create
+a new virtual environment as follows:
+
+    $ conda create --name bonspy python=3 -y
+
+Activate the environment:
+
+    $ source activate bonspy
+
+Install the requirements:
+
+    $ pip install -r requirements.txt
+
+Now install bonspy in development mode:
+
+    $ python setup.py develop
+
+To run the tests, install these additional packages:
+
+    $ pip install -r requirements_test.txt
+
+Now run the tests:
+
+    $ py.test bonspy --flake8
 
 ## Example: NetworkX tree to Bonsai output
 
@@ -222,25 +270,20 @@ Prints out
 
 ## Example: Uploading the Bonsai output to AppNexus
 
-Base64-encode the tree:
-
-    import base64
-    encoded = base64.b64encode(tree.bonsai)
-
-Use our [`nexusadspy` library](https://github.com/mathemads/nexusadspy) to
+Use our [`nexusadspy` library](https://github.com/markovianhq/nexusadspy) to
 send the encoded `tree` to the AppNexus parser and check
 for any syntactical errors:
 
     from nexusadspy import AppnexusClient
-    client = AppnexusClient('.appnexus_auth.json')
 
     check_tree = {
-                   "custom-model-parser": {
-                        "model_text": encoded
-                        }
-                   }
+                     "custom-model-parser": {
+                         "model_text": tree.bonsai_encoded
+                     }
+                 }
 
-    r = client.request('custom-model-parser', 'POST', data=check_tree)
+    with AppnexusClient('.appnexus_auth.json') as client:
+        r = client.request('custom-model-parser', 'POST', data=check_tree)
 
 If the AppNexus API does not return any errors for our `tree` we can now
 upload it as follows:
