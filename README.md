@@ -1,5 +1,8 @@
 # Bonspy
 
+[![PyPI version](https://badge.fury.io/py/bonspy.svg)](https://badge.fury.io/py/bonspy)
+[![Build Status](https://travis-ci.org/markovianhq/bonspy.svg)](https://travis-ci.org/markovianhq/bonspy)
+
 Bonspy converts bidding trees from various input formats to the
 [Bonsai bidding language of AppNexus](http://developers.appnexus.com/introduction-to-the-bonsai-decision-tree-language/).
 
