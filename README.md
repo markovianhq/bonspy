@@ -1,7 +1,7 @@
 # Bonspy
 
 Bonspy converts bidding trees from various input formats to the
-[Bonsai bidding language of AppNexus](http://blog.appnexus.com/2015/introducing-appnexus-programmable-bidder/).
+[Bonsai bidding language of AppNexus](http://developers.appnexus.com/introduction-to-the-bonsai-decision-tree-language/).
 
 As intermediate format bonspy constructs a [NetworkX](https://networkx.github.io/) graph from which it produces the
 Bonsai language output.
@@ -10,7 +10,7 @@ Bidding trees may also be constructed directly in this NetworkX format (see firs
 At present bonspy provides a converter from trained [sklearn](http://scikit-learn.org/stable/) logistic regression
 classifiers with categorical, one-hot encoded features to the intermediate NetworkX format (see second example below).
 
-In combination with our AppNexus API wrapper [`nexusadspy`](https://github.com/mathemads/nexusadspy) it is also
+In combination with our AppNexus API wrapper [`nexusadspy`](https://github.com/markovianhq/nexusadspy) it is also
 straightforward to check your bidding tree for syntactical errors and upload it for real-time bidding (third example below).
 
 This package was developed and tested on Python 3.5.
