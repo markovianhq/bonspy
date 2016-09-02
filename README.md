@@ -227,7 +227,7 @@ Base64-encode the tree:
     import base64
     encoded = base64.b64encode(tree.bonsai)
 
-Use our [`nexusadspy` library](https://github.com/mathemads/nexusadspy) to
+Use our [`nexusadspy` library](https://github.com/markovianhq/nexusadspy) to
 send the encoded `tree` to the AppNexus parser and check
 for any syntactical errors:
 
