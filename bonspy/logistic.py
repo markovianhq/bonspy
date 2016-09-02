@@ -11,7 +11,7 @@ import math
 import networkx as nx
 
 
-class LogisticConverter():
+class LogisticConverter:
     """
     Converter that translates a trained sklearn logistic regression classifier
     with one-hot-encoded, categorical features to a NetworkX graph that can
