@@ -280,7 +280,6 @@ send the encoded `tree` to the AppNexus parser and check
 for any syntactical errors:
 
     from nexusadspy import AppnexusClient
-    client = AppnexusClient('.appnexus_auth.json')
 
     check_tree = {
                    "custom-model-parser": {
@@ -288,7 +287,8 @@ for any syntactical errors:
                         }
                    }
 
-    r = client.request('custom-model-parser', 'POST', data=check_tree)
+    with AppnexusClient('.appnexus_auth.json') as client:
+        r = client.request('custom-model-parser', 'POST', data=check_tree)
 
 If the AppNexus API does not return any errors for our `tree` we can now
 upload it as follows:
