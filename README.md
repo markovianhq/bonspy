@@ -176,6 +176,8 @@ prints out
 
 ## Example: Sklearn logistic regression classifier to Bonsai output
 
+**This example is old and has not been tested lately!**
+
     from bonspy import LogisticConverter
     from bonspy import BonsaiTree
 
