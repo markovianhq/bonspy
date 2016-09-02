@@ -120,7 +120,8 @@ Now run the tests:
     
     tree = BonsaiTree(g)
 
-This `tree` looks as follows:
+This `tree` looks as follows (note the image below is old: `geo` has been replaced with `country`,
+and `UK` with `GB`):
 
 ![tree_example](https://cloud.githubusercontent.com/assets/3273502/10993831/4cf94712-8472-11e5-8256-4f736814d7eb.png)
 
