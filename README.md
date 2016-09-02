@@ -16,6 +16,50 @@ straightforward to check your bidding tree for syntactical errors and upload it 
 This package was developed and tested on Python 3.5.
 However, the examples below have been tested successfully in Python 2.7.
 
+## Installation
+
+### Installation as regular library
+
+Install the latest release from PyPI:
+
+    $ pip install bonspy
+
+To install the latest `master` branch commit of bonspy:
+
+    $ pip install -e git+git@github.com:markovianhq/bonspy.git@master#egg=bonspy
+
+To install a specific commit, e.g. `97c41e9`:
+
+    $ pip install -e git+git@github.com:markovianhq/bonspy.git@97c41e9#egg=bonspy
+
+### Installation for development
+
+To install bonspy for local development you may want to create a virtual environment.
+Assuming you use [Continuum Anaconda](https://www.continuum.io/downloads), create
+a new virtual environment as follows:
+
+    $ conda create --name bonspy python=3 -y
+
+Activate the environment:
+
+    $ source activate bonspy
+
+Install the requirements:
+
+    $ pip install -r requirements.txt
+
+Now install bonspy in development mode:
+
+    $ python setup.py develop
+
+To run the tests, install these additional packages:
+
+    $ pip install -r requirements_test.txt
+
+Now run the tests:
+
+    $ py.test bonspy --flake8
+
 ## Example: NetworkX tree to Bonsai output
 
     import networkx as nx
