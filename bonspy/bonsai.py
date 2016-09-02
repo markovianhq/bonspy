@@ -12,6 +12,9 @@ from collections import deque
 import networkx as nx
 
 
+RANGE_EPSILON = 1
+
+
 class BonsaiTree(nx.DiGraph):
     """
     A NetworkX DiGraph (directed graph) subclass that knows how to print
@@ -177,12 +180,12 @@ class BonsaiTree(nx.DiGraph):
                     right_bound=right_bound
                 )
             elif (left_bound is not None) and (right_bound is None):
-                out = '{indent}case ({left_bound}):\n'.format(
+                out = '{indent}case ({left_bound} ..):\n'.format(
                     indent=indent,
-                    left_bound=left_bound
+                    left_bound=left_bound + RANGE_EPSILON
                 )
             elif (left_bound is None) and (right_bound is not None):
-                out = '{indent}case ({right_bound}):\n'.format(
+                out = '{indent}case (.. {right_bound}):\n'.format(
                     indent=indent,
                     right_bound=right_bound
                 )
