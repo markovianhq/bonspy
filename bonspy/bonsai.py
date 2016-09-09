@@ -252,8 +252,8 @@ class BonsaiTree(nx.DiGraph):
 
         else:
             raise ValueError(
-                'Unable to deduce conditional statement for '
-                'parent node "{}" and child node "{}".'.format(parent, child)
+                'Unable to deduce conditional statement for type "{}", '
+                'parent node "{}", and child node "{}".'.format(type_, parent, child)
             )
 
         return out
