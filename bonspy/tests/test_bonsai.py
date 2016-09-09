@@ -107,3 +107,10 @@ def test_feature_validation(graph_two_range_features):
                 assert isinstance(upper, int)
             except KeyError:
                 pass
+
+
+def test_compound_feature(graph_compound_feature):
+    tree = BonsaiTree(graph_compound_feature)
+
+    assert 'if every site_id=1, placement_id="a":' in tree.bonsai
+    assert 'elif every site_id=1, placement_id="b":' in tree.bonsai

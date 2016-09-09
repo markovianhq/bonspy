@@ -29,13 +29,14 @@ class BonsaiTree(nx.DiGraph):
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
     """
 
-    def __init__(self, graph=None):
+    def __init__(self, graph=None, join_statements=None):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
             self._validate_feature_values()
             self._assign_indent()
             self._assign_condition()
             self._handle_switch_statements()
+            self.join_statements = join_statements or {}
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__()
@@ -190,70 +191,32 @@ class BonsaiTree(nx.DiGraph):
 
         feature = self._get_feature(parent, child)
 
-        if type_ == 'range':
-            left_bound, right_bound = value
-            try:
-                left_bound = int(left_bound)
-            except TypeError:
-                pass
-            try:
-                right_bound = int(right_bound)
-            except TypeError:
-                pass
-
-            if (left_bound is not None) and (right_bound is not None):
-                out = '{indent}case ({left_bound} .. {right_bound}):\n'.format(
-                    indent=indent,
-                    left_bound=left_bound,
-                    right_bound=right_bound
-                )
-            elif (left_bound is not None) and (right_bound is None):
-                out = '{indent}case ({left_bound} ..):\n'.format(
-                    indent=indent,
-                    left_bound=left_bound + RANGE_EPSILON
-                )
-            elif (left_bound is None) and (right_bound is not None):
-                out = '{indent}case (.. {right_bound}):\n'.format(
-                    indent=indent,
-                    right_bound=right_bound
-                )
-            else:
-                raise ValueError('Value cannot be (None,None)')
-
-        elif type_ == 'membership':
-            value = tuple(value)
-            if isinstance(value[0], str):
-                value = '(\"{}\")'.format('\",\"'.join(value))
-            out = '{indent}{conditional} {feature} in {value}:\n'.format(indent=indent,
-                                                                         conditional=conditional,
-                                                                         feature=feature,
-                                                                         value=value)
-        elif type_ == 'assignment':
-            comparison = '='
-            value = '"{}"'.format(value) if not self._is_numerical(value) else value
-
-            if feature not in ['segment']:
-                out = '{indent}{conditional} {feature}{comparison}{value}:\n'.format(
-                    indent=indent,
-                    conditional=conditional,
-                    feature=feature,
-                    comparison=comparison,
-                    value=value)
-            else:
-                out = '{indent}{conditional} {feature}[{value}]:\n'.format(
-                    indent=indent,
-                    conditional=conditional,
-                    feature=feature,
-                    value=value
-                )
-
+        if self.node[parent].get('switch_header'):
+            out = self._get_range_statement(indent, value)
         else:
-            raise ValueError(
-                'Unable to deduce conditional statement for type "{}", '
-                'parent node "{}", and child node "{}".'.format(type_, parent, child)
-            )
+            out = '{indent}{conditional} '
+            if all(isinstance(x, (list, tuple)) for x in (feature, type_)):
+                join_statement = self._get_join_statement(feature)
+                out += join_statement + ' ' + ', '.join(
+                    self._get_if_conditional(indent, v, t, f) for v, t, f in zip(value, type_, feature)
+                )
+            elif not any(isinstance(x, (list, tuple)) for x in (feature, type_)):
+                out += self._get_if_conditional(indent, value, type_, feature)
+            else:
+                raise ValueError(
+                    'Unable to deduce if-conditional '
+                    'for feature "{}" and type "{}".'.format(
+                        feature, type_
+                    )
+                )
+            out += ':\n'
+
+            out = out.format(indent=indent, conditional=conditional)
 
         return out
+
+    def _get_join_statement(self, feature):
+        return self.join_statements.get(feature, 'every')
 
     def _get_feature(self, parent, state_node):
         feature = self.node[parent].get('split')
@@ -262,6 +225,74 @@ class BonsaiTree(nx.DiGraph):
             feature = 'segment[{}].age'.format(self.node[state_node]['state']['segment'])
 
         return feature
+
+    @staticmethod
+    def _get_range_statement(indent, value, feature=None):
+        left_bound, right_bound = value
+        try:
+            left_bound = int(left_bound)
+        except TypeError:
+            left_bound = ''
+        try:
+            right_bound = int(right_bound)
+        except TypeError:
+            right_bound = ''
+
+        if left_bound == right_bound == '':
+            raise ValueError(
+                'Value "{}" not reasonable as value of a range feature.'.format(
+                    value
+                )
+            )
+
+        if feature is None:
+            out = '{indent}case ({left_bound} .. {right_bound}):\n'.format(
+                indent=indent,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+        else:
+            out = '{feature} in ({left_bound} .. {right_bound})'.format(
+                feature=feature,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+
+        return out
+
+    def _get_if_conditional(self, indent, value, type_, feature):
+        if type_ == 'range':
+            out = self._get_range_statement(indent, value, feature)
+        elif type_ == 'membership':
+            value = tuple(value)
+            if isinstance(value[0], str):
+                value = '(\"{}\")'.format('\",\"'.join(value))
+            out = '{feature} in {value}'.format(
+                feature=feature,
+                value=value
+            )
+        elif type_ == 'assignment':
+            comparison = '='
+            value = '"{}"'.format(value) if not self._is_numerical(value) else value
+
+            if feature not in ['segment']:
+                out = '{feature}{comparison}{value}'.format(
+                    feature=feature,
+                    comparison=comparison,
+                    value=value
+                )
+            else:
+                out = '{feature}[{value}]'.format(
+                    feature=feature,
+                    value=value
+                )
+
+        else:
+            raise ValueError(
+                'Unable to deduce conditional statement for type "{}".'.format(type_)
+            )
+
+        return out
 
     def _get_default_conditional_text(self, parent, child):
         type_ = self._get_sibling_type(parent, child)

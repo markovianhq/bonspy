@@ -152,3 +152,72 @@ def graph_two_range_features():
     g.add_edge(6, 21)
 
     return g
+
+
+@pytest.fixture
+def graph_compound_feature():
+    g = nx.DiGraph()
+
+    g.add_node(0, split='geo', state={})
+    g.add_node(1, split=('site_id', 'placement_id'), state={'geo': 'DE'})
+    g.add_node(2, split=('site_id', 'placement_id'), state={'geo': 'UK'})
+    g.add_node(
+        3, state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a'},
+        split='os'
+    )
+    g.add_node(
+        4, is_leaf=True, output=.4,
+        state={'geo': 'DE', 'site_id': 1, 'placement_id': 'b'}
+    )
+    g.add_node(
+        5, state={'geo': 'UK', 'site_id': 1, 'placement_id': 'a'},
+        split='os'
+    )
+    g.add_node(
+        6, is_leaf=True, output=.6,
+        state={'geo': 'UK', 'site_id': 1, 'placement_id': 'b'}
+    )
+    g.add_node(
+        7, is_leaf=True, output=.9,
+        state={'geo': 'UK', 'site_id': 2, 'placement_id': 'a'}
+    )
+    g.add_node(
+        8, is_leaf=True, output=.2,
+        state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a', 'os': 'linux'}
+    )
+    g.add_node(
+        9, is_leaf=True, output=.3,
+        state={'geo': 'UK', 'site_id': 1, 'placement_id': 'a', 'os': 'windows'}
+    )
+    g.add_node(
+        10, is_default_leaf=True, output=.1, state={}
+    )
+    g.add_node(
+        11, is_default_leaf=True, output=.5, state={'geo': 'DE'}
+    )
+    g.add_node(
+        12, is_default_leaf=True, output=.05, state={'geo': 'UK'}
+    )
+    g.add_node(
+        13, is_default_leaf=True, output=.2, state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a'}
+    )
+    g.add_node(
+        14, is_default_leaf=True, output=.3, state={'geo': 'UK', 'site_id': 1, 'placement_id': 'a'}
+    )
+
+    g.add_edge(0, 1, value='DE', type='assignment')
+    g.add_edge(0, 2, value='UK', type='assignment')
+    g.add_edge(1, 3, value=(1, 'a'), type=('assignment', 'assignment'))
+    g.add_edge(1, 4, value=(1, 'b'), type=('assignment', 'assignment'))
+    g.add_edge(2, 5, value=(1, 'a'), type=('assignment', 'assignment'))
+    g.add_edge(2, 6, value=(1, 'b'), type=('assignment', 'assignment'))
+    g.add_edge(2, 7, value=(2, 'a'), type=('assignment', 'assignment'))
+    g.add_edge(3, 8, value='linux', type='assignment')
+    g.add_edge(5, 9, value='windows', type='assignment')
+    g.add_edge(0, 10)
+    g.add_edge(1, 11)
+    g.add_edge(2, 12)
+    g.add_edge(3, 13)
+    g.add_edge(5, 14)
+
+    return g
