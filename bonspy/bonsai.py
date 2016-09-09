@@ -116,7 +116,7 @@ class BonsaiTree(nx.DiGraph):
         root = self._get_root()
         stack = deque(self._get_sorted_out_edges(root))
 
-        while len(stack) > 0:
+        while stack:
             parent, child = stack.popleft()
 
             next_edges = self._get_sorted_out_edges(child)
@@ -138,7 +138,7 @@ class BonsaiTree(nx.DiGraph):
         switch_header_nodes = [n for n, d in self.nodes_iter(data=True) if d.get('switch_header')]
         stack = deque(switch_header_nodes)
 
-        while len(stack) > 0:
+        while stack:
             node = stack.popleft()
             next_nodes = self.successors(node)
             stack.extendleft(next_nodes[::-1])  # extendleft reverses order!
