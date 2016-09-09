@@ -125,10 +125,7 @@ class BonsaiTree(nx.DiGraph):
             type_ = self.edge[parent][child].get('type')
 
             if type_ == 'range':
-                feature = self.node[parent].get('split')
-
-                if feature == 'age':
-                    feature = 'segment[{}].age'.format(self.node[parent]['state']['segment'])
+                feature = self._get_feature(parent, state_node=parent)
 
                 header = 'switch {}:'.format(feature)  # appropriate indentation added later
 
@@ -258,11 +255,11 @@ class BonsaiTree(nx.DiGraph):
 
         return out
 
-    def _get_feature(self, parent, child):
+    def _get_feature(self, parent, state_node):
         feature = self.node[parent].get('split')
 
         if feature == 'age':
-            feature = 'segment[{}].age'.format(self.node[child]['state']['segment'])
+            feature = 'segment[{}].age'.format(self.node[state_node]['state']['segment'])
 
         return feature
 
