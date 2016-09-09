@@ -169,19 +169,29 @@ class BonsaiTree(nx.DiGraph):
         return out_text
 
     def _get_conditional_text(self, parent, child):
-        indent = self.node[parent]['indent']
-        feature = self.node[parent].get('split')
-        value = self.edge[parent][child]['value']
+        pre_out = self._get_pre_out_statement(parent, child)
+        out = self._get_out_statement(parent, child)
+
+        return pre_out + out
+
+    def _get_pre_out_statement(self, parent, child):
         type_ = self.edge[parent][child]['type']
         conditional = self.node[child]['condition']
 
         pre_out = ''
 
-        if feature == 'age':
-            feature = 'segment[{}].age'.format(self.node[child]['state']['segment'])
-
         if type_ == 'range' and conditional == 'if':
             pre_out = self.node[parent]['switch_header'] + '\n'
+
+        return pre_out
+
+    def _get_out_statement(self, parent, child):
+        indent = self.node[parent]['indent']
+        value = self.edge[parent][child]['value']
+        type_ = self.edge[parent][child]['type']
+        conditional = self.node[child]['condition']
+
+        feature = self._get_feature(parent, child)
 
         if type_ == 'range':
             left_bound, right_bound = value
@@ -240,7 +250,21 @@ class BonsaiTree(nx.DiGraph):
                     value=value
                 )
 
-        return pre_out + out
+        else:
+            raise ValueError(
+                'Unable to deduce conditional statement for '
+                'parent node "{}" and child node "{}".'.format(parent, child)
+            )
+
+        return out
+
+    def _get_feature(self, parent, child):
+        feature = self.node[parent].get('split')
+
+        if feature == 'age':
+            feature = 'segment[{}].age'.format(self.node[child]['state']['segment'])
+
+        return feature
 
     def _get_default_conditional_text(self, parent, child):
         type_ = self._get_sibling_type(parent, child)
