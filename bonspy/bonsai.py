@@ -82,9 +82,12 @@ class BonsaiTree(nx.DiGraph):
             for node in next_nodes:
                 self.node[node]['indent'] = indent + '\t'
 
-            next_nodes = sorted(next_nodes, key=lambda x: self.node[x].get('is_default_leaf', False))
+            next_nodes = sorted(next_nodes, key=self._sort_key)
 
             queue.extend(next_nodes)
+
+    def _sort_key(self, x):
+        return self.node[x].get('is_default_leaf', False), self.node[x].get('is_default_node', False), x
 
     def _assign_condition(self):
         root = self._get_root()
@@ -94,7 +97,7 @@ class BonsaiTree(nx.DiGraph):
             node = queue.popleft()
 
             next_nodes = self.successors(node)
-            next_nodes = sorted(next_nodes, key=lambda x: (self.node[x].get('is_default_leaf', False), x))
+            next_nodes = sorted(next_nodes, key=self._sort_key)
 
             for n_i, n in enumerate(next_nodes):
                 if n_i == 0:
@@ -194,14 +197,16 @@ class BonsaiTree(nx.DiGraph):
         if self.node[parent].get('switch_header'):
             out = self._get_range_statement(indent, value)
         else:
-            out = '{indent}{conditional} '
-            if all(isinstance(x, (list, tuple)) for x in (feature, type_)):
+            out = '{indent}{conditional}'
+            if type_ is not None and all(isinstance(x, (list, tuple)) for x in (feature, type_)):
                 join_statement = self._get_join_statement(feature)
-                out += join_statement + ' ' + ', '.join(
+                out += ' ' + join_statement + ' ' + ', '.join(
                     self._get_if_conditional(indent, v, t, f) for v, t, f in zip(value, type_, feature)
                 )
-            elif not any(isinstance(x, (list, tuple)) for x in (feature, type_)):
-                out += self._get_if_conditional(indent, value, type_, feature)
+            elif type_ is not None and not any(isinstance(x, (list, tuple)) for x in (feature, type_)):
+                out += ' ' + self._get_if_conditional(indent, value, type_, feature)
+            elif type_ is None:
+                out += ''
             else:
                 raise ValueError(
                     'Unable to deduce if-conditional '
