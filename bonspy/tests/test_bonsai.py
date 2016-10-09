@@ -123,10 +123,10 @@ def test_if_elif_else_switch_default(graph_with_default_node):
 
     line_list = tree.bonsai.split('\n')
     line_list = line_list[:-1] if line_list[-1] == '' else line_list
-    indent_dict = {i: len(i.split('\t')) - 1 for i in line_list}
+    indent_dict = {line: len(line.split('\t')) - 1 for line in line_list}
 
     indent_list = [indent_dict[i] for i in line_list]
-    assert all(i != j for i, j in zip(indent_list, indent_list[1:]))
+    assert all(indent != next_indent for indent, next_indent in zip(indent_list, indent_list[1:]))
 
     queue = deque([line_list])
 
@@ -142,9 +142,9 @@ def test_if_elif_else_switch_default(graph_with_default_node):
         but_last = [sub_list[i] for i in indices[0:-1]]
         middle = [sub_list[i] for i in indices[1:-1]]
 
-        if_elif_else_level = 'if' in first and 'else:' in last and all('elif' in i for i in middle)
+        if_elif_else_level = 'if' in first and 'else:' in last and all('elif' in line for line in middle)
         switch_level = 'switch' in first and len(indices) == 1
-        case_level = all('case' in i for i in but_last) and 'default' in last
+        case_level = all('case' in line for line in but_last) and 'default' in last
 
         assert if_elif_else_level or switch_level or case_level
 
