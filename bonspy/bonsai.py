@@ -176,7 +176,7 @@ class BonsaiTree(nx.DiGraph):
         return pre_out + out
 
     def _get_pre_out_statement(self, parent, child):
-        type_ = self.edge[parent][child]['type']
+        type_ = self.edge[parent][child].get('type')
         conditional = self.node[child]['condition']
 
         pre_out = ''
@@ -188,8 +188,8 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_out_statement(self, parent, child):
         indent = self.node[parent]['indent']
-        value = self.edge[parent][child]['value']
-        type_ = self.edge[parent][child]['type']
+        value = self.edge[parent][child].get('value')
+        type_ = self.edge[parent][child].get('type')
         conditional = self.node[child]['condition']
 
         feature = self._get_feature(parent, child)
