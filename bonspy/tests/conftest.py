@@ -289,5 +289,5 @@ def graph_with_default_node():
 
 
 @pytest.fixture(params=['graph', 'graph_two_range_features', 'graph_compound_feature', 'graph_with_default_node'])
-def parametrized_graph(request):
+def parameterized_graph(request):
     return request.getfuncargvalue(request.param)
