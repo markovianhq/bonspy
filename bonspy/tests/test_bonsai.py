@@ -118,8 +118,8 @@ def test_compound_feature(graph_compound_feature):
     assert 'elif every site_id=1, placement_id="b":' in tree.bonsai
 
 
-def test_if_elif_else_switch_default(graph_with_default_node):
-    tree = BonsaiTree(graph_with_default_node)
+def test_if_elif_else_switch_default(parametrized_graph):
+    tree = BonsaiTree(parametrized_graph)
 
     line_list = tree.bonsai.split('\n')
     line_list = line_list[:-1] if line_list[-1] == '' else line_list
