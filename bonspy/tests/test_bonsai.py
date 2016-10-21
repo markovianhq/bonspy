@@ -5,6 +5,8 @@ from __future__ import (
     absolute_import, unicode_literals
 )
 
+from collections import deque
+
 from bonspy import BonsaiTree
 
 
@@ -114,3 +116,43 @@ def test_compound_feature(graph_compound_feature):
 
     assert 'if every site_id=1, placement_id="a":' in tree.bonsai
     assert 'elif every site_id=1, placement_id="b":' in tree.bonsai
+
+
+def test_if_elif_else_switch_default(parameterized_graph):
+    tree = BonsaiTree(parameterized_graph)
+
+    line_list = tree.bonsai.split('\n')
+    line_list = line_list[:-1] if line_list[-1] == '' else line_list
+    indent_dict = {line: len(line.split('\t')) - 1 for line in line_list}
+
+    indent_list = [indent_dict[i] for i in line_list]
+    assert all(indent != next_indent for indent, next_indent in zip(indent_list, indent_list[1:]))
+
+    queue = deque([line_list])
+
+    while len(queue) > 0:
+        sub_list = queue.pop()
+        indent_list = [indent_dict[i] for i in sub_list]
+
+        outermost_level = min(indent_list)
+        indices = [i for i, v in enumerate(indent_list) if v == outermost_level]
+
+        first = sub_list[indices[0]]
+        last = sub_list[indices[-1]]
+        but_last = [sub_list[i] for i in indices[0:-1]]
+        middle = [sub_list[i] for i in indices[1:-1]]
+
+        if_elif_else_level = 'if' in first and 'else:' in last and all('elif' in line for line in middle)
+        switch_level = 'switch' in first and len(indices) == 1
+        case_level = all('case' in line for line in but_last) and 'default' in last
+
+        assert if_elif_else_level or switch_level or case_level
+
+        for i, j in zip(indices, indices[1:] + [None]):
+            new_sublist = sub_list[i+1:j]
+            if len(new_sublist) == 0:
+                continue
+            elif len(new_sublist) == 1:
+                assert float(new_sublist[0].strip())
+            else:
+                queue.append(new_sublist)
