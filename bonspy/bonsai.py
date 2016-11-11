@@ -11,7 +11,7 @@ from collections import deque
 
 import networkx as nx
 
-from bonspy.features import get_validated
+from bonspy.features import compound_features, get_validated
 
 
 RANGE_EPSILON = 1
