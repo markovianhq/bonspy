@@ -86,7 +86,7 @@ def graph():
 def graph_two_range_features():
     g = nx.DiGraph()
 
-    g.add_node(0, split=('segment', 'segment.age'),  state={})
+    g.add_node(0, split=('segment', 'segment.age'), state={})
     g.add_node(1, split='user_hour', state={'segment': 12345, 'segment.age': (0., 10.)})
     g.add_node(2, split='user_hour', state={'segment': 12345, 'segment.age': (10., 20.)})
     g.add_node(3, split='user_hour', state={'segment': 67890, 'segment.age': (0., 20.)})
