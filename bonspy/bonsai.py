@@ -225,9 +225,27 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_feature(self, parent, state_node):
         feature = self.node[parent].get('split')
+        if isinstance(feature, (list, tuple)):
+            attributes_indices = [feature.index(f) for f in feature if '.' in f and f.split('.')[0] in feature]
+            feature = list(feature)
+            for i in attributes_indices:
+                object_, attribute = feature[i].split('.')
+                feature[i] = '{feature}[{value}].{attribute}'.format(
+                    feature=object_,
+                    value=self.node[state_node]['state'][object_],
+                    attribute=attribute
+                )
 
-        if feature == 'age':
-            feature = 'segment[{}].age'.format(self.node[state_node]['state']['segment'])
+            return tuple(feature)
+
+        else:
+            if '.' in feature:
+                object_, attribute = feature.split('.')
+                feature = '{feature}[{value}].{attribute}'.format(
+                    feature=object_,
+                    value=self.node[state_node]['state'][object_],
+                    attribute=attribute
+                )
 
         return feature
 
@@ -280,16 +298,23 @@ class BonsaiTree(nx.DiGraph):
             comparison = '='
             value = '"{}"'.format(value) if not self._is_numerical(value) else value
 
-            if feature not in ['segment']:
+            if feature.split('.')[0] not in compound_features:
                 out = '{feature}{comparison}{value}'.format(
                     feature=feature,
                     comparison=comparison,
                     value=value
                 )
-            else:
+            elif feature in compound_features:
                 out = '{feature}[{value}]'.format(
                     feature=feature,
                     value=value
+                )
+            else:
+                object_, attribute = feature.split('.')
+                out = '{feature}[{value}].{attribute}'.format(
+                    feature=object_,
+                    value=value,
+                    attribute=attribute
                 )
 
         else:
