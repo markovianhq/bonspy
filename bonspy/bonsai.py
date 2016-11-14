@@ -226,15 +226,19 @@ class BonsaiTree(nx.DiGraph):
     def _get_feature(self, parent, state_node):
         feature = self.node[parent].get('split')
         if isinstance(feature, (list, tuple)):
-            attribute_indices = self._get_attribute_indices(feature)
-            feature = list(feature)
-            for i in attribute_indices:
-                feature[i] = self._get_formatted_compound_feature(feature[i], state_node)
-
-            return tuple(feature)
-
+            return self._get_formatted_multidimensional_compound_feature(feature, state_node)
+        elif '.' in feature:
+            return self._get_formatted_compound_feature(feature, state_node)
         else:
-            return self._get_formatted_compound_feature(feature, state_node) if '.' in feature else feature
+            return feature
+
+    def _get_formatted_multidimensional_compound_feature(self, feature, state_node):
+        attribute_indices = self._get_attribute_indices(feature)
+        feature = list(feature)
+        for i in attribute_indices:
+            feature[i] = self._get_formatted_compound_feature(feature[i], state_node)
+
+        return tuple(feature)
 
     @staticmethod
     def _get_attribute_indices(feature):
