@@ -5,9 +5,16 @@ from __future__ import (
     absolute_import, unicode_literals
 )
 
+from itertools import product
+
+objects = ['advertiser', 'line_item', 'campaign']
+attributes = ['recency', 'day_frequency', 'lifetime_frequency']
+compound_features = objects + ['segment']
+
 FLOORS = {
     'age': 0,
-    'user_hour': 0
+    'user_hour': 0,
+    'segment.value': 1
 }
 
 CEILINGS = {
@@ -15,10 +22,13 @@ CEILINGS = {
 }
 
 TYPES = {
-    'age': int,
-    'user_hour': int,
     'segment': int,
+    'segment.age': int,
+    'segment.value': int,
+    'user_hour': int
 }
+
+TYPES.update({'{object}.{attribute}'.format(object=k, attribute=v): int for (k, v) in product(objects, attributes)})
 
 
 def get_validated(feature, value):

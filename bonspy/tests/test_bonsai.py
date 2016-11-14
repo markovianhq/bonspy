@@ -14,20 +14,20 @@ def test_switch_header(graph):
     tree = BonsaiTree(graph)
     text = tree.bonsai.replace('\t', '').split('\n')
 
-    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == 'age']
+    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == 'segment.age']
 
     assert len(switch_header_nodes) == 2
     assert all([d.get('switch_header') is not None for d in switch_header_nodes])
 
     for row in text:
-        if 'age' in row:
+        if 'segment.age' in row:
             assert row in ['switch segment[12345].age:', 'switch segment[67890].age:']
 
 
 def test_switch_indent(graph):
     tree = BonsaiTree(graph)
 
-    switch_header_nodes = [n for n, d in tree.nodes_iter(data=True) if d.get('split') == 'age']
+    switch_header_nodes = [n for n, d in tree.nodes_iter(data=True) if d.get('split') == 'segment.age']
 
     for node in switch_header_nodes:
         node_indent = tree.node[node]['indent'].count('\t')
@@ -45,7 +45,7 @@ def test_compound_feature_presence(graph):
     text = tree.bonsai.replace('\t', '').split('\n')
 
     for row in text:
-        if 'segment' in row and 'age' not in row:
+        if 'segment' in row and 'segment.age' not in row:
             assert 'segment[12345]' in row or 'segment[67890]' in row
 
 
@@ -68,8 +68,7 @@ def test_feature_validation(graph_two_range_features):
 
     for node, data in tree.nodes_iter(data=True):
         try:
-            lower, upper = data['state']['age']
-
+            lower, upper = data['state']['segment.age']
             assert lower >= 0
             assert isinstance(lower, int)
             assert isinstance(upper, int)
@@ -88,7 +87,7 @@ def test_feature_validation(graph_two_range_features):
             pass
 
     for parent, _, data in tree.edges_iter(data=True):
-        if tree.node[parent]['split'] == 'age':
+        if tree.node[parent]['split'] == 'segment.age':
             try:
                 lower, upper = data['value']
 
