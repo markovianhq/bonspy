@@ -170,7 +170,7 @@ class BonsaiTree(nx.DiGraph):
         return out_text
 
     def _get_output_value(self, node):
-        if self.node.get('is_smart'):
+        if self.node[node].get('is_smart'):
             out_value = self._get_smart_leaf_output(node)
         else:
             out_value = self._get_leaf_output(node)
@@ -184,17 +184,16 @@ class BonsaiTree(nx.DiGraph):
         min_value = self.node[node].get('min_value', '_')
         max_value = self.node[node].get('max_value', '_')
 
-        return '''
-                value: compute({input_field}, {multiplier}, {offset}, {min_value}, {max_value})
-                '''.format(input_field=input_field,
-                           multiplier=multiplier,
-                           offset=offset,
-                           min_value=min_value,
-                           max_value=max_value
-                           )
+        return 'value: compute({input_field}, {multiplier}, {offset}, {min_value}, {max_value})'.format(
+            input_field=input_field,
+            multiplier=multiplier,
+            offset=offset,
+            min_value=min_value,
+            max_value=max_value
+        )
 
     def _get_leaf_output(self, node):
-        return '{value:.4f}'.format(self.node[node]['output'])
+        return '{value:.4f}'.format(value=self.node[node]['output'])
 
     def _get_conditional_text(self, parent, child):
         pre_out = self._get_pre_out_statement(parent, child)
