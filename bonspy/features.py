@@ -12,7 +12,7 @@ attributes = ['recency', 'day_frequency', 'lifetime_frequency']
 compound_features = objects + ['segment']
 
 FLOORS = {
-    'age': 0,
+    'segment.age': 0,
     'user_hour': 0,
     'segment.value': 1
 }
