@@ -42,11 +42,14 @@ def graph():
     g.add_node(13, is_leaf=True, output=0.10,
                state={'segment': 67890, 'segment.age': (20., 40.),
                       'geo': ('UK', 'DE')})
-    g.add_node(14, is_leaf=True, output=0.20,
+    g.add_node(14, is_leaf=True, is_smart=True,
+               input_field='uniform', offset=0.4, max_value=1.,
                state={'segment': 67890, 'segment.age': (20., 40.),
                       'geo': ('US', 'BR')})
     g.add_node(15, is_default_leaf=True, output=0.05, state={})
-    g.add_node(16, is_default_leaf=True, output=0.05, state={'segment': 12345})
+    g.add_node(16, is_default_leaf=True, is_smart=True,
+               input_field='uniform', multiplier=1.2, min_value=1.,
+               state={'segment': 12345})
     g.add_node(17, is_default_leaf=True, output=0.05, state={'segment': 67890})
     g.add_node(18, is_default_leaf=True, output=0.05,
                state={'segment': 12345, 'segment.age': (0., 10.)})

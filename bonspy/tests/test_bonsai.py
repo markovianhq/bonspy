@@ -6,6 +6,7 @@ from __future__ import (
 )
 
 from collections import deque
+import re
 
 from bonspy import BonsaiTree
 
@@ -152,6 +153,12 @@ def test_if_elif_else_switch_default(parameterized_graph):
             if len(new_sublist) == 0:
                 continue
             elif len(new_sublist) == 1:
-                assert float(new_sublist[0].strip())
+                try:
+                    assert float(new_sublist[0].strip())
+                except ValueError:
+                    assert re.match(
+                        r"value: compute\(\w+, (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_)\)",
+                        new_sublist[0].strip()
+                    )
             else:
                 queue.append(new_sublist)
