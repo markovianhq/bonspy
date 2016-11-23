@@ -87,7 +87,10 @@ class BonsaiTree(nx.DiGraph):
             queue.extend(next_nodes)
 
     def _sort_key(self, x):
-        return self.node[x].get('is_default_leaf', False), self.node[x].get('is_default_node', False), x
+        key = [self.node[x].get('is_default_leaf', False), self.node[x].get('is_default_node', False)]
+        key += list(self.node[x]['state'].values())
+
+        return tuple(key)
 
     def _assign_condition(self):
         root = self._get_root()
