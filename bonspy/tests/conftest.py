@@ -5,6 +5,8 @@ from __future__ import (
     absolute_import, unicode_literals
 )
 
+from collections import OrderedDict
+
 import networkx as nx
 
 import pytest
@@ -14,60 +16,66 @@ import pytest
 def graph():
     g = nx.DiGraph()
 
-    g.add_node(0, split='segment', state={})
-    g.add_node(1, split='segment.age', state={'segment': 12345})
-    g.add_node(2, split='segment.age', state={'segment': 67890})
-    g.add_node(3, split='geo', state={'segment': 12345, 'segment.age': (0., 10.)})
-    g.add_node(4, split='geo', state={'segment': 12345, 'segment.age': (10., 20.)})
-    g.add_node(5, split='geo', state={'segment': 67890, 'segment.age': (0., 20.)})
-    g.add_node(6, split='geo', state={'segment': 67890, 'segment.age': (20., 40.)})
+    g.add_node(0, split='segment', state=OrderedDict())
+    g.add_node(2, split='segment.age',
+               state=OrderedDict([('segment', 12345)]))
+    g.add_node(1, split='segment.age',
+               state=OrderedDict([('segment', 67890)]))
+    g.add_node(3, split='geo',
+               state=OrderedDict([('segment', 12345), ('segment.age', (0., 10.))]))
+    g.add_node(4, split='geo',
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
+    g.add_node(5, split='geo',
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.))]))
+    g.add_node(6, split='geo',
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
     g.add_node(7, is_leaf=True, output=0.10,
-               state={'segment': 12345, 'segment.age': (0, 10.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (0, 10.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(8, is_leaf=True, output=0.20,
-               state={'segment': 12345, 'segment.age': (0, 10.),
-                      'geo': ('US', 'BR')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (0, 10.)),
+                                  ('geo', ('US', 'BR'))]))
     g.add_node(9, is_leaf=True, output=0.10,
-               state={'segment': 12345, 'segment.age': (10., 20.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(10, is_leaf=True, output=0.20,
-               state={'segment': 12345, 'segment.age': (10., 20.),
-                      'geo': ('US', 'BR')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.)),
+                                  ('geo', ('US', 'BR'))]))
     g.add_node(11, is_leaf=True, output=0.10,
-               state={'segment': 67890, 'segment.age': (0., 20.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(12, is_leaf=True, output=0.20,
-               state={'segment': 67890, 'segment.age': (0., 20.),
-                      'geo': ('US', 'BR')})
+                state = OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
+                                     ('geo', ('US', 'BR'))]))
     g.add_node(13, is_leaf=True, is_smart=True, value=0.10,
-               state={'segment': 67890, 'segment.age': (20., 40.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(14, is_leaf=True, is_smart=True,
                input_field='uniform', offset=0.4, max_value=1.,
-               state={'segment': 67890, 'segment.age': (20., 40.),
-                      'geo': ('US', 'BR')})
-    g.add_node(15, is_default_leaf=True, output=0.05, state={})
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.)),
+                                  ('geo', ('US', 'BR'))]))
+    g.add_node(15, is_default_leaf=True, output=0.05, state=OrderedDict())
     g.add_node(16, is_default_leaf=True, is_smart=True,
                input_field='uniform', multiplier=1.2, min_value=1.,
-               state={'segment': 12345})
+               state=OrderedDict([('segment', 12345)]))
     g.add_node(17, is_default_leaf=True, is_smart=True, leaf_name='default_17',
                input_field='uniform', multiplier=.32, max_value=3.1,
-               state={'segment': 67890})
+               state=OrderedDict([('segment', 67890)]))
     g.add_node(18, is_default_leaf=True, output=0.05,
-               state={'segment': 12345, 'segment.age': (0., 10.)})
+               state=OrderedDict([('segment', 12345), ('segment.age', (0., 10.))]))
     g.add_node(19, is_default_leaf=True, output=0.05,
-               state={'segment': 12345, 'segment.age': (10., 20.)})
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
     g.add_node(20, is_default_leaf=True, output=0.05,
-               state={'segment': 67890, 'segment.age': (0., 20.)})
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.))]))
     g.add_node(21, is_default_leaf=True, output=0.05,
-               state={'segment': 67890, 'segment.age': (20., 40.)})
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
 
-    g.add_edge(0, 1, value=12345, type='assignment')
-    g.add_edge(0, 2, value=67890, type='assignment')
-    g.add_edge(1, 3, value=(0., 10.), type='range')
-    g.add_edge(1, 4, value=(10., 20.), type='range')
-    g.add_edge(2, 5, value=(0., 20.), type='range')
-    g.add_edge(2, 6, value=(20., 40.), type='range')
+    g.add_edge(0, 2, value=12345, type='assignment')
+    g.add_edge(0, 1, value=67890, type='assignment')
+    g.add_edge(2, 3, value=(0., 10.), type='range')
+    g.add_edge(2, 4, value=(10., 20.), type='range')
+    g.add_edge(1, 5, value=(0., 20.), type='range')
+    g.add_edge(1, 6, value=(20., 40.), type='range')
     g.add_edge(3, 7, value=('UK', 'DE'), type='membership')
     g.add_edge(3, 8, value=('US', 'BR'), type='membership')
     g.add_edge(4, 9, value=('UK', 'DE'), type='membership')
@@ -77,8 +85,8 @@ def graph():
     g.add_edge(6, 13, value=('UK', 'DE'), type='membership')
     g.add_edge(6, 14, value=('US', 'BR'), type='membership')
     g.add_edge(0, 15)
-    g.add_edge(1, 16)
-    g.add_edge(2, 17)
+    g.add_edge(2, 16)
+    g.add_edge(1, 17)
     g.add_edge(3, 18)
     g.add_edge(4, 19)
     g.add_edge(5, 20)
