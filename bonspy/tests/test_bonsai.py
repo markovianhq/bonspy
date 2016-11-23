@@ -162,3 +162,15 @@ def test_segment_order(graph):
 
     assert 'if segment[12345]' in tree.bonsai
     assert 'elif segment[67890]' in tree.bonsai
+
+
+def test_segment_order_mapping(graph):
+    tree = BonsaiTree(
+        graph,
+        feature_order={
+            'segment': {12345: 1, 67890: 0}
+        }
+    )
+
+    assert 'if segment[67890]' in tree.bonsai
+    assert 'elif segment[12345]' in tree.bonsai
