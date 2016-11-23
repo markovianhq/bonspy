@@ -39,7 +39,7 @@ def graph():
     g.add_node(12, is_leaf=True, output=0.20,
                state={'segment': 67890, 'segment.age': (0., 20.),
                       'geo': ('US', 'BR')})
-    g.add_node(13, is_leaf=True, output=0.10,
+    g.add_node(13, is_leaf=True, is_smart=True, value=0.10,
                state={'segment': 67890, 'segment.age': (20., 40.),
                       'geo': ('UK', 'DE')})
     g.add_node(14, is_leaf=True, is_smart=True,
@@ -50,7 +50,9 @@ def graph():
     g.add_node(16, is_default_leaf=True, is_smart=True,
                input_field='uniform', multiplier=1.2, min_value=1.,
                state={'segment': 12345})
-    g.add_node(17, is_default_leaf=True, output=0.05, state={'segment': 67890})
+    g.add_node(17, is_default_leaf=True, is_smart=True, leaf_name='default_17',
+               input_field='uniform', multiplier=.32, max_value=3.1,
+               state={'segment': 67890})
     g.add_node(18, is_default_leaf=True, output=0.05,
                state={'segment': 12345, 'segment.age': (0., 10.)})
     g.add_node(19, is_default_leaf=True, output=0.05,

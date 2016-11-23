@@ -163,21 +163,53 @@ class BonsaiTree(nx.DiGraph):
     def _get_output_text(self, node):
         out_text = ''
         if self.node[node].get('is_leaf') or self.node[node].get('is_default_leaf'):
-            out_value = self._get_output_value(node)
-            out_indent = self.node[node]['indent']
-            out_text = '{indent}{value}\n'.format(indent=out_indent, value=out_value)
+            name_line = self._get_name_line(node)
+            value_line = self._get_value_line(node)
+            out_text = name_line + value_line
 
         return out_text
 
-    def _get_output_value(self, node):
-        if self.node[node].get('is_smart'):
-            out_value = self._get_smart_leaf_output(node)
+    def _get_name_line(self, node):
+        if self.node[node].get('is_smart') and self.node[node].get('leaf_name'):
+            out_indent = self.node[node]['indent']
+            out_name = self.node[node]['leaf_name']
+            name_line = '{indent}leaf_name: {name}\n'.format(indent=out_indent, name=out_name)
         else:
+            name_line = ''
+
+        return name_line
+
+    def _get_value_line(self, node):
+        out_indent = self.node[node]['indent']
+        out_value = self._get_output_value(node)
+        value_line = '{indent}{value}\n'.format(indent=out_indent, value=out_value)
+
+        return value_line
+
+    def _get_output_value(self, node):
+        if not self.node[node].get('is_smart'):
             out_value = self._get_leaf_output(node)
+        else:
+            out_value = self._get_smart_leaf_output(node)
 
         return out_value
 
+    def _get_leaf_output(self, node):
+        return '{value:.4f}'.format(value=self.node[node]['output'])
+
     def _get_smart_leaf_output(self, node):
+        if self.node[node].get('value'):
+            out_value = self._get_smart_leaf_output_bid_syntax(node)
+        else:
+            out_value = self._get_smart_leaf_output_compute_syntax(node)
+
+        return out_value
+
+    def _get_smart_leaf_output_bid_syntax(self, node):
+        bid_value = self.node[node]['value']
+        return 'value: {bid_value}'.format(bid_value=bid_value)
+
+    def _get_smart_leaf_output_compute_syntax(self, node):
         input_field = self.node[node]['input_field']
         multiplier = self.node[node].get('multiplier', '_')
         offset = self.node[node].get('offset', '_')
@@ -191,9 +223,6 @@ class BonsaiTree(nx.DiGraph):
             min_value=min_value,
             max_value=max_value
         )
-
-    def _get_leaf_output(self, node):
-        return '{value:.4f}'.format(value=self.node[node]['output'])
 
     def _get_conditional_text(self, parent, child):
         pre_out = self._get_pre_out_statement(parent, child)
