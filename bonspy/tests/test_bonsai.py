@@ -155,3 +155,10 @@ def test_if_elif_else_switch_default(parameterized_graph):
                 assert float(new_sublist[0].strip())
             else:
                 queue.append(new_sublist)
+
+
+def test_segment_order(graph):
+    tree = BonsaiTree(graph)
+
+    assert 'if segment[12345]' in tree.bonsai
+    assert 'elif segment[67890]' in tree.bonsai
