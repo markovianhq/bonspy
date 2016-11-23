@@ -148,10 +148,29 @@ def test_if_elif_else_switch_default(parameterized_graph):
         assert if_elif_else_level or switch_level or case_level
 
         for i, j in zip(indices, indices[1:] + [None]):
-            new_sublist = sub_list[i+1:j]
+            new_sublist = sub_list[i + 1:j]
             if len(new_sublist) == 0:
                 continue
             elif len(new_sublist) == 1:
                 assert float(new_sublist[0].strip())
             else:
                 queue.append(new_sublist)
+
+
+def test_segment_order(graph):
+    tree = BonsaiTree(graph)
+
+    assert 'if segment[12345]' in tree.bonsai
+    assert 'elif segment[67890]' in tree.bonsai
+
+
+def test_segment_order_mapping(graph):
+    tree = BonsaiTree(
+        graph,
+        feature_order={
+            'segment': {12345: 1, 67890: 0}
+        }
+    )
+
+    assert 'if segment[67890]' in tree.bonsai
+    assert 'elif segment[12345]' in tree.bonsai
