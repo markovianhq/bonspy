@@ -45,8 +45,8 @@ def graph():
                state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
                                   ('geo', ('UK', 'DE'))]))
     g.add_node(12, is_leaf=True, output=0.20,
-                state = OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
-                                     ('geo', ('US', 'BR'))]))
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
+                                  ('geo', ('US', 'BR'))]))
     g.add_node(13, is_leaf=True, is_smart=True, value=0.10,
                state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.)),
                                   ('geo', ('UK', 'DE'))]))
