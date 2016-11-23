@@ -148,7 +148,7 @@ def test_if_elif_else_switch_default(parameterized_graph):
         assert if_elif_else_level or switch_level or case_level
 
         for i, j in zip(indices, indices[1:] + [None]):
-            new_sublist = sub_list[i+1:j]
+            new_sublist = sub_list[i + 1:j]
             if len(new_sublist) == 0:
                 continue
             elif len(new_sublist) == 1:
