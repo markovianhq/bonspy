@@ -24,7 +24,7 @@ class BonsaiTree(nx.DiGraph):
 
     See the readme for the expected graph structure:
 
-    https://github.com/mathemads/bonspy
+    https://github.com/markovianhq/bonspy
 
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
     """
