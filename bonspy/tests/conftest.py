@@ -5,6 +5,8 @@ from __future__ import (
     absolute_import, unicode_literals
 )
 
+from collections import OrderedDict
+
 import networkx as nx
 
 import pytest
@@ -14,48 +16,56 @@ import pytest
 def graph():
     g = nx.DiGraph()
 
-    g.add_node(0, split='segment', state={})
-    g.add_node(1, split='segment.age', state={'segment': 12345})
-    g.add_node(2, split='segment.age', state={'segment': 67890})
-    g.add_node(3, split='geo', state={'segment': 12345, 'segment.age': (0., 10.)})
-    g.add_node(4, split='geo', state={'segment': 12345, 'segment.age': (10., 20.)})
-    g.add_node(5, split='geo', state={'segment': 67890, 'segment.age': (0., 20.)})
-    g.add_node(6, split='geo', state={'segment': 67890, 'segment.age': (20., 40.)})
+    g.add_node(0, split='segment', state=OrderedDict())
+    g.add_node(1, split='segment.age',
+               state=OrderedDict([('segment', 12345)]))
+    g.add_node(2, split='segment.age',
+               state=OrderedDict([('segment', 67890)]))
+    g.add_node(3, split='geo',
+               state=OrderedDict([('segment', 12345), ('segment.age', (0., 10.))]))
+    g.add_node(4, split='geo',
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
+    g.add_node(5, split='geo',
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.))]))
+    g.add_node(6, split='geo',
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
     g.add_node(7, is_leaf=True, output=0.10,
-               state={'segment': 12345, 'segment.age': (0, 10.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (0, 10.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(8, is_leaf=True, output=0.20,
-               state={'segment': 12345, 'segment.age': (0, 10.),
-                      'geo': ('US', 'BR')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (0, 10.)),
+                                  ('geo', ('US', 'BR'))]))
     g.add_node(9, is_leaf=True, output=0.10,
-               state={'segment': 12345, 'segment.age': (10., 20.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(10, is_leaf=True, output=0.20,
-               state={'segment': 12345, 'segment.age': (10., 20.),
-                      'geo': ('US', 'BR')})
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.)),
+                                  ('geo', ('US', 'BR'))]))
     g.add_node(11, is_leaf=True, output=0.10,
-               state={'segment': 67890, 'segment.age': (0., 20.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(12, is_leaf=True, output=0.20,
-               state={'segment': 67890, 'segment.age': (0., 20.),
-                      'geo': ('US', 'BR')})
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
+                                  ('geo', ('US', 'BR'))]))
     g.add_node(13, is_leaf=True, output=0.10,
-               state={'segment': 67890, 'segment.age': (20., 40.),
-                      'geo': ('UK', 'DE')})
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.)),
+                                  ('geo', ('UK', 'DE'))]))
     g.add_node(14, is_leaf=True, output=0.20,
-               state={'segment': 67890, 'segment.age': (20., 40.),
-                      'geo': ('US', 'BR')})
-    g.add_node(15, is_default_leaf=True, output=0.05, state={})
-    g.add_node(16, is_default_leaf=True, output=0.05, state={'segment': 12345})
-    g.add_node(17, is_default_leaf=True, output=0.05, state={'segment': 67890})
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.)),
+                                  ('geo', ('US', 'BR'))]))
+    g.add_node(15, is_default_leaf=True, output=0.05, state=OrderedDict())
+    g.add_node(16, is_default_leaf=True, output=0.05,
+               state=OrderedDict([('segment', 12345)]))
+    g.add_node(17, is_default_leaf=True, output=0.05,
+               state=OrderedDict([('segment', 67890)]))
     g.add_node(18, is_default_leaf=True, output=0.05,
-               state={'segment': 12345, 'segment.age': (0., 10.)})
+               state=OrderedDict([('segment', 12345), ('segment.age', (0., 10.))]))
     g.add_node(19, is_default_leaf=True, output=0.05,
-               state={'segment': 12345, 'segment.age': (10., 20.)})
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
     g.add_node(20, is_default_leaf=True, output=0.05,
-               state={'segment': 67890, 'segment.age': (0., 20.)})
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.))]))
     g.add_node(21, is_default_leaf=True, output=0.05,
-               state={'segment': 67890, 'segment.age': (20., 40.)})
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
 
     g.add_edge(0, 1, value=12345, type='assignment')
     g.add_edge(0, 2, value=67890, type='assignment')
