@@ -6,6 +6,7 @@ from __future__ import (
 )
 
 from collections import deque
+import re
 
 from bonspy import BonsaiTree
 
@@ -122,6 +123,7 @@ def test_if_elif_else_switch_default(parameterized_graph):
 
     line_list = tree.bonsai.split('\n')
     line_list = line_list[:-1] if line_list[-1] == '' else line_list
+    line_list = [line for line in line_list if 'leaf_name: ' not in line]
     indent_dict = {line: len(line.split('\t')) - 1 for line in line_list}
 
     indent_list = [indent_dict[i] for i in line_list]
@@ -152,7 +154,13 @@ def test_if_elif_else_switch_default(parameterized_graph):
             if len(new_sublist) == 0:
                 continue
             elif len(new_sublist) == 1:
-                assert float(new_sublist[0].strip())
+                try:
+                    assert float(new_sublist[0].strip())
+                except ValueError:
+                    assert re.match(
+                        r"value: (\d+\.\d*|compute\(\w+, (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_)\))",
+                        new_sublist[0].strip()
+                    )
             else:
                 queue.append(new_sublist)
 
