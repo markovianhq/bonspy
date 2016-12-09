@@ -8,10 +8,12 @@ from __future__ import (
 import base64
 
 from collections import deque
+from functools import cmp_to_key
 
 import networkx as nx
 
 from bonspy.features import compound_features, get_validated
+from bonspy.utils import compare_vectors
 
 
 RANGE_EPSILON = 1
@@ -87,11 +89,27 @@ class BonsaiTree(nx.DiGraph):
 
             queue.extend(next_nodes)
 
-    def _sort_key(self, x):
-        key = [self.node[x].get('is_default_leaf', False), self.node[x].get('is_default_node', False)]
-        key += self._get_sorted_values(x)
+    @property
+    def _sort_key(self):
+        cmp = self._get_comparison_function()
+        return cmp_to_key(cmp)
 
-        return tuple(key)
+    def _get_comparison_function(self):
+        _get_default_extended_vector = self._get_default_extended_vector
+
+        def compare_nodes(x, y):
+            x_ = _get_default_extended_vector(x)
+            y_ = _get_default_extended_vector(y)
+
+            return compare_vectors(x_, y_)
+
+        return compare_nodes
+
+    def _get_default_extended_vector(self, x):
+        vec = [self.node[x].get('is_default_leaf', False), self.node[x].get('is_default_node', False)]
+        vec += self._get_sorted_values(x)
+
+        return vec
 
     def _get_sorted_values(self, x):
         values = []
@@ -359,36 +377,41 @@ class BonsaiTree(nx.DiGraph):
         if type_ == 'range':
             out = self._get_range_statement(indent, value, feature)
         elif type_ == 'membership':
-            value = tuple(value)
-            if isinstance(value[0], str):
-                value = '(\"{}\")'.format('\",\"'.join(value))
-            out = '{feature} in {value}'.format(
-                feature=feature,
-                value=value
-            )
+            try:
+                value = tuple(value)
+                if isinstance(value[0], str):
+                    value = '(\"{}\")'.format('\",\"'.join(value))
+                out = '{feature} in {value}'.format(
+                    feature=feature,
+                    value=value
+                )
+            except TypeError:
+                out = '{feature} absent'.format(feature=feature)
         elif type_ == 'assignment':
-            comparison = '='
-            value = '"{}"'.format(value) if not self._is_numerical(value) else value
+            if value is not None:
+                comparison = '='
+                value = '"{}"'.format(value) if not self._is_numerical(value) else value
 
-            if feature.split('.')[0] not in compound_features:
-                out = '{feature}{comparison}{value}'.format(
-                    feature=feature,
-                    comparison=comparison,
-                    value=value
-                )
-            elif feature in compound_features:
-                out = '{feature}[{value}]'.format(
-                    feature=feature,
-                    value=value
-                )
+                if feature.split('.')[0] not in compound_features:
+                    out = '{feature}{comparison}{value}'.format(
+                        feature=feature,
+                        comparison=comparison,
+                        value=value
+                    )
+                elif feature in compound_features:
+                    out = '{feature}[{value}]'.format(
+                        feature=feature,
+                        value=value
+                    )
+                else:
+                    object_, attribute = feature.split('.')
+                    out = '{feature}[{value}].{attribute}'.format(
+                        feature=object_,
+                        value=value,
+                        attribute=attribute
+                    )
             else:
-                object_, attribute = feature.split('.')
-                out = '{feature}[{value}].{attribute}'.format(
-                    feature=object_,
-                    value=value,
-                    attribute=attribute
-                )
-
+                out = '{feature} absent'.format(feature=feature)
         else:
             raise ValueError(
                 'Unable to deduce conditional statement for type "{}".'.format(type_)
