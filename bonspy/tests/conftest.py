@@ -6,7 +6,6 @@ from __future__ import (
 )
 
 from collections import OrderedDict
-import math
 
 import networkx as nx
 
@@ -23,11 +22,11 @@ def graph():
     g.add_node(1, split='segment.age',
                state=OrderedDict([('segment', 67890)]))
     g.add_node(3, split='geo',
-               state=OrderedDict([('segment', 12345), ('segment.age', (-math.inf, 10.))]))
+               state=OrderedDict([('segment', 12345), ('segment.age', (-float('inf'), 10.))]))
     g.add_node(4, split='geo',
                state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
     g.add_node(5, split='geo',
-               state=OrderedDict([('segment', 67890), ('segment.age', (-math.inf, 20.))]))
+               state=OrderedDict([('segment', 67890), ('segment.age', (-float('inf'), 20.))]))
     g.add_node(6, split='geo',
                state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
     g.add_node(7, is_leaf=True, output=0.10,
@@ -49,7 +48,7 @@ def graph():
                state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
                                   ('geo', ('US', 'BR'))]))
     g.add_node(13, is_leaf=True, is_smart=True, value=0.10,
-               state=OrderedDict([('segment', 67890), ('segment.age', (20., math.inf)),
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., float('inf'))),
                                   ('geo', ('UK', 'DE'))]))
     g.add_node(14, is_leaf=True, is_smart=True,
                input_field='uniform', offset=0.4, max_value=1.,
