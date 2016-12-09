@@ -89,3 +89,6 @@ def _type_cast(feature, value):
     except TypeError:
         # `value` is None
         return value
+    except OverflowError:
+        # `value` is -inf or inf
+        return value

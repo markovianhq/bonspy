@@ -326,11 +326,11 @@ class BonsaiTree(nx.DiGraph):
         left_bound, right_bound = value
         try:
             left_bound = int(left_bound)
-        except TypeError:
+        except (TypeError, OverflowError):
             left_bound = ''
         try:
             right_bound = int(right_bound)
-        except TypeError:
+        except (TypeError, OverflowError):
             right_bound = ''
 
         if left_bound == right_bound == '':
