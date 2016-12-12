@@ -91,8 +91,8 @@ class BonsaiTree(nx.DiGraph):
 
     @property
     def _sort_key(self):
-        cmp = self._get_comparison_function()
-        return cmp_to_key(cmp)
+        comparison_function = self._get_comparison_function()
+        return cmp_to_key(comparison_function)
 
     def _get_comparison_function(self):
         _get_default_extended_vector = self._get_default_extended_vector
