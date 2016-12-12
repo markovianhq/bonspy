@@ -46,8 +46,8 @@ def test_compound_feature_presence(graph):
     text = tree.bonsai.replace('\t', '').split('\n')
 
     for row in text:
-        if 'segment' in row and 'segment.age' not in row:
-            assert 'segment[12345]' in row or 'segment[67890]' in row
+        if 'segment' in row:
+            assert any(['segment[{id}]'.format(id=i) in row for i in [12345, 67890, 13579]])
 
 
 def test_two_range_features(graph_two_range_features):
