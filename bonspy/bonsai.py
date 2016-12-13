@@ -60,6 +60,8 @@ class BonsaiTree(nx.DiGraph):
     def _validate_edge_values(self):
         for parent, child, data in self.edges_iter(data=True):
             feature = self.node[parent]['split']
+            if isinstance(feature, dict):
+                feature = feature.get(child)
             try:
                 value = data['value']
                 self.edge[parent][child]['value'] = get_validated(feature, value)
@@ -116,6 +118,7 @@ class BonsaiTree(nx.DiGraph):
 
         for feature, value in self.node[x]['state'].items():
             value = self.feature_order.get(feature, {}).get(value, value)
+            values.append(feature)
             values.append(value)
 
         return values
@@ -159,8 +162,8 @@ class BonsaiTree(nx.DiGraph):
 
             type_ = self.edge[parent][child].get('type')
 
-            if type_ == 'range':
-                feature = self._get_feature(parent, state_node=parent)
+            if type_ == 'range' and isinstance(self.node[parent]['split'], str):
+                feature = self._get_feature(parent, child, state_node=parent)
 
                 header = 'switch {}:'.format(feature)  # appropriate indentation added later
 
@@ -266,7 +269,7 @@ class BonsaiTree(nx.DiGraph):
 
         pre_out = ''
 
-        if type_ == 'range' and conditional == 'if':
+        if type_ == 'range' and conditional == 'if' and isinstance(self.node[parent]['split'], str):
             pre_out = self.node[parent]['switch_header'] + '\n'
 
         return pre_out
@@ -276,10 +279,9 @@ class BonsaiTree(nx.DiGraph):
         value = self.edge[parent][child].get('value')
         type_ = self.edge[parent][child].get('type')
         conditional = self.node[child]['condition']
+        feature = self._get_feature(parent, child, state_node=child)
 
-        feature = self._get_feature(parent, child)
-
-        if self.node[parent].get('switch_header'):
+        if self.node[parent].get('switch_header') and type_ == 'range':
             out = self._get_range_statement(indent, value)
         else:
             out = '{indent}{conditional}'
@@ -308,8 +310,10 @@ class BonsaiTree(nx.DiGraph):
     def _get_join_statement(self, feature):
         return self.join_statements.get(feature, 'every')
 
-    def _get_feature(self, parent, state_node):
+    def _get_feature(self, parent, child, state_node):
         feature = self.node[parent].get('split')
+        if isinstance(feature, dict):
+            feature = feature[child]
         if isinstance(feature, (list, tuple)):
             return self._get_formatted_multidimensional_compound_feature(feature, state_node)
         elif '.' in feature:
@@ -423,7 +427,7 @@ class BonsaiTree(nx.DiGraph):
         type_ = self._get_sibling_type(parent, child)
         indent = self.node[parent]['indent']
 
-        conditional = 'default' if type_ == 'range' else 'else'
+        conditional = 'default' if type_ == 'range' and isinstance(self.node[parent]['split'], str) else 'else'
 
         return '{indent}{conditional}:\n'.format(indent=indent, conditional=conditional)
 

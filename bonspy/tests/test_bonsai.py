@@ -17,12 +17,13 @@ def test_switch_header(graph):
 
     switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == 'segment.age']
 
-    assert len(switch_header_nodes) == 2
+    assert len(switch_header_nodes) == 1
     assert all([d.get('switch_header') is not None for d in switch_header_nodes])
 
     for row in text:
-        if 'segment.age' in row:
-            assert row in ['switch segment[12345].age:', 'switch segment[67890].age:']
+        if '.age' in row:
+            assert row in ['switch segment[12345].age:', 'switch segment[67890].age:',
+                           'elif segment[12345].age in (0 .. 10):']
 
 
 def test_switch_indent(graph):
