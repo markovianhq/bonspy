@@ -240,7 +240,11 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_smart_leaf_output_bid_syntax(self, node):
         bid_value = self.node[node]['value']
-        return 'value: {bid_value:.4f}'.format(bid_value=bid_value)
+        if round(bid_value, 4) <= 0:
+            out_value = 'value: no_bid'
+        else:
+            out_value = 'value: {bid_value:.4f}'.format(bid_value=bid_value)
+        return out_value
 
     def _get_smart_leaf_output_compute_syntax(self, node):
         input_field = self.node[node]['input_field']

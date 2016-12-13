@@ -159,7 +159,7 @@ def test_if_elif_else_switch_default(parameterized_graph):
                     assert float(new_sublist[0].strip())
                 except ValueError:
                     assert re.match(
-                        r"value: (\d+\.\d*|compute\(\w+, (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_)\))",
+                        r"value: (no_bid|\d+\.\d*|compute\(\w+, (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_)\))",
                         new_sublist[0].strip()
                     )
             else:
