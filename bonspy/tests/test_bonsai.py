@@ -190,7 +190,7 @@ def test_language_segment_age_order(graph):
     tree = BonsaiTree(graph)
 
     assert 'if language' in tree.bonsai
-    assert 'elif segment[12345]' in tree.bonsai
+    assert 'elif segment[12345].age' in tree.bonsai
 
 
 def test_feature_order_mapping(graph):
@@ -201,5 +201,5 @@ def test_feature_order_mapping(graph):
         }
     )
 
-    assert 'if segment[12345]' in tree.bonsai
+    assert 'if segment[12345].age' in tree.bonsai
     assert 'elif language' in tree.bonsai
