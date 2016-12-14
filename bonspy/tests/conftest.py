@@ -207,6 +207,10 @@ def graph_compound_feature():
         state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a', 'os': 'linux'}
     )
     g.add_node(
+        15, is_leaf=True, output=.1,
+        state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a', 'os': 'windows'}
+    )
+    g.add_node(
         9, is_leaf=True, output=.3,
         state={'geo': 'UK', 'site_id': 1, 'placement_id': 'a', 'os': 'windows'}
     )
@@ -234,6 +238,7 @@ def graph_compound_feature():
     g.add_edge(2, 6, value=(1, 'b'), type=('assignment', 'assignment'))
     g.add_edge(2, 7, value=(2, 'a'), type=('assignment', 'assignment'))
     g.add_edge(3, 8, value='linux', type='assignment')
+    g.add_edge(3, 15, value='windows', type='assignment')
     g.add_edge(5, 9, value='windows', type='assignment')
     g.add_edge(0, 10)
     g.add_edge(1, 11)
