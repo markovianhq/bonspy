@@ -35,10 +35,11 @@ class BonsaiTree(nx.DiGraph):
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
     """
 
-    def __init__(self, graph=None, join_statements=None, feature_order=None):
+    def __init__(self, graph=None, join_statements=None, feature_order=None, feature_value_order=None):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
+            self.feature_value_order = feature_value_order or {}
             self._validate_feature_values()
             self._assign_indent()
             self._assign_condition()
@@ -121,7 +122,8 @@ class BonsaiTree(nx.DiGraph):
         values = []
 
         for feature, value in self.node[x]['state'].items():
-            value = self.feature_order.get(feature, {}).get(value, value)
+            feature = self.feature_order.get(feature, len(feature))
+            value = self.feature_value_order.get(feature, {}).get(value, value)
             values.append(feature)
             values.append(value)
 
