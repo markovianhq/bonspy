@@ -15,6 +15,10 @@ import networkx as nx
 from bonspy.features import compound_features, get_validated
 from bonspy.utils import compare_vectors
 
+try:
+    basestring
+except NameError:
+    basestring = str
 
 RANGE_EPSILON = 1
 
@@ -162,7 +166,7 @@ class BonsaiTree(nx.DiGraph):
 
             type_ = self.edge[parent][child].get('type')
 
-            if type_ == 'range' and isinstance(self.node[parent]['split'], str):
+            if type_ == 'range' and isinstance(self.node[parent]['split'], basestring):
                 feature = self._get_feature(parent, child, state_node=parent)
 
                 header = 'switch {}:'.format(feature)  # appropriate indentation added later
@@ -273,7 +277,7 @@ class BonsaiTree(nx.DiGraph):
 
         pre_out = ''
 
-        if type_ == 'range' and conditional == 'if' and isinstance(self.node[parent]['split'], str):
+        if type_ == 'range' and conditional == 'if' and isinstance(self.node[parent]['split'], basestring):
             pre_out = self.node[parent]['switch_header'] + '\n'
 
         return pre_out
@@ -387,7 +391,7 @@ class BonsaiTree(nx.DiGraph):
         elif type_ == 'membership':
             try:
                 value = tuple(value)
-                if isinstance(value[0], str):
+                if isinstance(value[0], basestring):
                     value = '(\"{}\")'.format('\",\"'.join(value))
                 out = '{feature} in {value}'.format(
                     feature=feature,
@@ -431,7 +435,7 @@ class BonsaiTree(nx.DiGraph):
         type_ = self._get_sibling_type(parent, child)
         indent = self.node[parent]['indent']
 
-        conditional = 'default' if type_ == 'range' and isinstance(self.node[parent]['split'], str) else 'else'
+        conditional = 'default' if type_ == 'range' and isinstance(self.node[parent]['split'], basestring) else 'else'
 
         return '{indent}{conditional}:\n'.format(indent=indent, conditional=conditional)
 
