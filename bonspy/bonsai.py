@@ -33,6 +33,17 @@ class BonsaiTree(nx.DiGraph):
     https://github.com/markovianhq/bonspy
 
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
+
+    :param graph: (optional) NetworkX graph to be exported to Bonsai.
+    :param join_statements: (optional), Dictionary indicating how to join multidimensional features.
+        Defaults to `every` for all features.
+    :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
+        Splitting the parent node on more than one feature is indicated through its `split` attribute
+        set to a dictionary {child id: feature the parent node is split on}.
+        The dictionary `feature_order` then provides the order these different features appear in the
+        Bonsai language output.
+    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
+        of the form {feature: {feature value: order position}}.
     """
 
     def __init__(self, graph=None, join_statements=None, feature_order=None, feature_value_order=None):
