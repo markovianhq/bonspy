@@ -186,6 +186,21 @@ def test_segment_order_mapping(graph):
     assert 'elif segment[12345]' in tree.bonsai
 
 
+def test_language_order_mapping(graph_compound_feature):
+    tree = BonsaiTree(
+        graph_compound_feature,
+        feature_value_order={
+            'os': {'windows': 0}
+        }
+    )
+
+    bonsai = tree.bonsai.replace('\n', '').replace('\t', '')
+
+    assert '''
+        if os="windows":0.1000elif os="linux":0.2000
+    ''' in bonsai
+
+
 def test_language_segment_age_order(graph):
     tree = BonsaiTree(graph)
 
