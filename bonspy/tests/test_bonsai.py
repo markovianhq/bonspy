@@ -190,7 +190,7 @@ def test_language_order_mapping(graph_compound_feature):
     tree = BonsaiTree(
         graph_compound_feature,
         feature_value_order={
-            'os': {'windows': 0}
+            'os': {'windows': 0, 'linux': 1}
         }
     )
 
