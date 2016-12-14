@@ -196,7 +196,7 @@ def test_feature_order_mapping(graph):
     tree = BonsaiTree(
         graph,
         feature_order={
-            'segment.age':0, 'language': 1
+            'segment.age': 0, 'language': 1
         }
     )
 
