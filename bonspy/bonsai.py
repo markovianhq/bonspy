@@ -39,7 +39,7 @@ class BonsaiTree(nx.DiGraph):
         Defaults to `every` for all features.
     :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
         Splitting the parent node on more than one feature is indicated through its `split` attribute
-        set to a dictionary {child id: feature the parent node is split on}.
+        set to an OrderedDict object [(child id, feature the parent node is split on]).
         The dictionary `feature_order` then provides the order these different features appear in the
         Bonsai language output.
     :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
