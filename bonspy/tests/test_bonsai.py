@@ -23,7 +23,7 @@ def test_switch_header(graph):
     for row in text:
         if '.age' in row:
             assert row in ['switch segment[12345].age:', 'switch segment[67890].age:',
-                           'elif segment[12345].age in (0 .. 10):']
+                           'if segment[12345].age in (0 .. 10):']
 
 
 def test_switch_indent(graph):
@@ -116,7 +116,7 @@ def test_compound_feature(graph_compound_feature):
     tree = BonsaiTree(graph_compound_feature)
 
     assert 'if every site_id=1, placement_id="a":' in tree.bonsai
-    assert 'elif every site_id=1, placement_id="b":' in tree.bonsai
+    assert 'if every site_id=1, placement_id="b":' in tree.bonsai
 
 
 def test_if_elif_else_switch_default(parameterized_graph):
@@ -215,17 +215,17 @@ def test_language_order_mapping_one_value(graph_compound_feature):
 def test_language_segment_age_order(graph):
     tree = BonsaiTree(graph)
 
-    assert 'if language' in tree.bonsai
-    assert 'elif segment[12345].age' in tree.bonsai
+    assert 'if segment[12345].age' in tree.bonsai
+    assert 'elif language' in tree.bonsai
 
 
 def test_feature_order_mapping(graph):
     tree = BonsaiTree(
         graph,
         feature_order={
-            'segment.age': 0, 'language': 1
+            'segment.age': 1, 'language': 0
         }
     )
 
-    assert 'if segment[12345].age' in tree.bonsai
-    assert 'elif language' in tree.bonsai
+    assert 'if language' in tree.bonsai
+    assert 'elif segment[12345].age' in tree.bonsai
