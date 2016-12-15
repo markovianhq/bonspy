@@ -133,10 +133,10 @@ class BonsaiTree(nx.DiGraph):
         values = []
 
         for feature, value in self.node[x]['state'].items():
-            feature = self.feature_order.get(feature, len(feature))
-            value = self.feature_value_order.get(feature, {}).get(value, value)
-            values.append(feature)
-            values.append(value)
+            feature_ = self.feature_order.get(feature, len(feature))
+            value_ = self.feature_value_order.get(feature, {}).get(value, value)
+            values.append(feature_)
+            values.append(value_)
 
         return values
 

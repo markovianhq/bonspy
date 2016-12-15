@@ -196,9 +196,20 @@ def test_language_order_mapping(graph_compound_feature):
 
     bonsai = tree.bonsai.replace('\n', '').replace('\t', '')
 
-    assert '''
-        if os="windows":0.1000elif os="linux":0.2000
-    ''' in bonsai
+    assert 'if os="windows":0.1000elif os="linux":0.2000' in bonsai
+
+
+def test_language_order_mapping_one_value(graph_compound_feature):
+    tree = BonsaiTree(
+        graph_compound_feature,
+        feature_value_order={
+            'os': {'windows': 0}
+        }
+    )
+
+    bonsai = tree.bonsai.replace('\n', '').replace('\t', '')
+
+    assert 'if os="windows":0.1000elif os="linux":0.2000' in bonsai
 
 
 def test_language_segment_age_order(graph):
