@@ -115,8 +115,8 @@ def test_feature_validation(graph_two_range_features):
 def test_compound_feature(graph_compound_feature):
     tree = BonsaiTree(graph_compound_feature)
 
-    assert 'if every site_id=1, placement_id="a":' in tree.bonsai
-    assert 'if every site_id=1, placement_id="b":' in tree.bonsai
+    assert 'every site_id=1, placement_id="a":' in tree.bonsai
+    assert 'every site_id=1, placement_id="b":' in tree.bonsai
 
 
 def test_if_elif_else_switch_default(parameterized_graph):
