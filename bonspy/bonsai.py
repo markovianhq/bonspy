@@ -133,12 +133,20 @@ class BonsaiTree(nx.DiGraph):
         values = []
 
         for feature, value in self.node[x]['state'].items():
-            feature_ = self.feature_order.get(feature, len(feature))
-            value_ = self.feature_value_order.get(feature, {}).get(value, value)
-            values.append(feature_)
-            values.append(value_)
+            feature_key = self.feature_order.get(feature, len(feature))
+            value_key = self._get_value_order_key(feature, value)
+            values.append(feature_key)
+            values.append(value_key)
 
         return values
+
+    def _get_value_order_key(self, feature, value):
+        try:
+            value_ = len(value)
+        except TypeError:
+            value_ = hash(value) if value is not None else value
+
+        return self.feature_value_order.get(feature, {}).get(value, value_)
 
     def _assign_condition(self):
         root = self._get_root()
