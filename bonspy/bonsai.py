@@ -153,7 +153,7 @@ class BonsaiTree(nx.DiGraph):
     @staticmethod
     def _get_order_key(dict_, key):
         order_key = 0
-        if not dict_ == dict():
+        if not dict_ == {}:
             try:
                 order_key = dict_[key]
             except KeyError:
