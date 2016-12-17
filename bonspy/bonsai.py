@@ -15,6 +15,10 @@ import networkx as nx
 from bonspy.features import compound_features, get_validated
 from bonspy.utils import compare_vectors
 
+try:
+    basestring
+except NameError:
+    basestring = str
 
 RANGE_EPSILON = 1
 
@@ -29,12 +33,24 @@ class BonsaiTree(nx.DiGraph):
     https://github.com/markovianhq/bonspy
 
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
+
+    :param graph: (optional) NetworkX graph to be exported to Bonsai.
+    :param join_statements: (optional), Dictionary indicating how to join multidimensional features.
+        Defaults to `every` for all features.
+    :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
+        Splitting the parent node on more than one feature is indicated through its `split` attribute
+        set to an OrderedDict object [(child id, feature the parent node is split on]).
+        The dictionary `feature_order` then provides the order these different features appear in the
+        Bonsai language output.
+    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
+        of the form {feature: {feature value: order position}}.
     """
 
-    def __init__(self, graph=None, join_statements=None, feature_order=None):
+    def __init__(self, graph=None, join_statements=None, feature_order=None, feature_value_order=None):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
+            self.feature_value_order = feature_value_order or {}
             self._validate_feature_values()
             self._assign_indent()
             self._assign_condition()
@@ -60,6 +76,8 @@ class BonsaiTree(nx.DiGraph):
     def _validate_edge_values(self):
         for parent, child, data in self.edges_iter(data=True):
             feature = self.node[parent]['split']
+            if isinstance(feature, dict):
+                feature = feature.get(child)
             try:
                 value = data['value']
                 self.edge[parent][child]['value'] = get_validated(feature, value)
@@ -115,10 +133,33 @@ class BonsaiTree(nx.DiGraph):
         values = []
 
         for feature, value in self.node[x]['state'].items():
-            value = self.feature_order.get(feature, {}).get(value, value)
-            values.append(value)
+            feature_key = self._get_feature_order_key(feature)
+            value_key = self._get_value_order_key(feature, value)
+            values.append(feature_key)
+            values.append(value_key)
 
         return values
+
+    def _get_feature_order_key(self, feature):
+        feature_order = self.feature_order
+        feature_order_key = self._get_order_key(dict_=feature_order, key=feature)
+        return feature_order_key
+
+    def _get_value_order_key(self, feature, value):
+        value_order = self.feature_value_order.get(feature, {})
+        value_order_key = self._get_order_key(dict_=value_order, key=value)
+        return value_order_key
+
+    @staticmethod
+    def _get_order_key(dict_, key):
+        order_key = 0
+        if not dict_ == {}:
+            try:
+                order_key = dict_[key]
+            except KeyError:
+                order_key = max(dict_.values()) + 1
+
+        return order_key
 
     def _assign_condition(self):
         root = self._get_root()
@@ -159,8 +200,8 @@ class BonsaiTree(nx.DiGraph):
 
             type_ = self.edge[parent][child].get('type')
 
-            if type_ == 'range':
-                feature = self._get_feature(parent, state_node=parent)
+            if type_ == 'range' and isinstance(self.node[parent]['split'], basestring):
+                feature = self._get_feature(parent, child, state_node=parent)
 
                 header = 'switch {}:'.format(feature)  # appropriate indentation added later
 
@@ -237,7 +278,11 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_smart_leaf_output_bid_syntax(self, node):
         bid_value = self.node[node]['value']
-        return 'value: {bid_value:.4f}'.format(bid_value=bid_value)
+        if round(bid_value, 4) <= 0:
+            out_value = 'value: no_bid'
+        else:
+            out_value = 'value: {bid_value:.4f}'.format(bid_value=bid_value)
+        return out_value
 
     def _get_smart_leaf_output_compute_syntax(self, node):
         input_field = self.node[node]['input_field']
@@ -266,7 +311,7 @@ class BonsaiTree(nx.DiGraph):
 
         pre_out = ''
 
-        if type_ == 'range' and conditional == 'if':
+        if type_ == 'range' and conditional == 'if' and isinstance(self.node[parent]['split'], basestring):
             pre_out = self.node[parent]['switch_header'] + '\n'
 
         return pre_out
@@ -276,10 +321,9 @@ class BonsaiTree(nx.DiGraph):
         value = self.edge[parent][child].get('value')
         type_ = self.edge[parent][child].get('type')
         conditional = self.node[child]['condition']
+        feature = self._get_feature(parent, child, state_node=child)
 
-        feature = self._get_feature(parent, child)
-
-        if self.node[parent].get('switch_header'):
+        if self.node[parent].get('switch_header') and type_ == 'range':
             out = self._get_range_statement(indent, value)
         else:
             out = '{indent}{conditional}'
@@ -308,8 +352,10 @@ class BonsaiTree(nx.DiGraph):
     def _get_join_statement(self, feature):
         return self.join_statements.get(feature, 'every')
 
-    def _get_feature(self, parent, state_node):
+    def _get_feature(self, parent, child, state_node):
         feature = self.node[parent].get('split')
+        if isinstance(feature, dict):
+            feature = feature[child]
         if isinstance(feature, (list, tuple)):
             return self._get_formatted_multidimensional_compound_feature(feature, state_node)
         elif '.' in feature:
@@ -379,7 +425,7 @@ class BonsaiTree(nx.DiGraph):
         elif type_ == 'membership':
             try:
                 value = tuple(value)
-                if isinstance(value[0], str):
+                if isinstance(value[0], basestring):
                     value = '(\"{}\")'.format('\",\"'.join(value))
                 out = '{feature} in {value}'.format(
                     feature=feature,
@@ -423,7 +469,7 @@ class BonsaiTree(nx.DiGraph):
         type_ = self._get_sibling_type(parent, child)
         indent = self.node[parent]['indent']
 
-        conditional = 'default' if type_ == 'range' else 'else'
+        conditional = 'default' if type_ == 'range' and isinstance(self.node[parent]['split'], basestring) else 'else'
 
         return '{indent}{conditional}:\n'.format(indent=indent, conditional=conditional)
 

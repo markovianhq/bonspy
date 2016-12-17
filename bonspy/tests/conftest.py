@@ -17,7 +17,7 @@ def graph():
     g = nx.DiGraph()
 
     g.add_node(0, split='segment', state=OrderedDict())
-    g.add_node(1, split='segment.age',
+    g.add_node(1, split=OrderedDict([(4, 'segment.age'), (5, 'language')]),
                state=OrderedDict([('segment', 12345)]))
     g.add_node(2, split='segment.age',
                state=OrderedDict([('segment', 67890)]))
@@ -26,8 +26,8 @@ def graph():
     g.add_node(4, split='geo',
                state=OrderedDict([('segment', 12345), ('segment.age', (-float('inf'), 10.))]))
     g.add_node(5, split='geo',
-               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
-    g.add_node(6, split='geo',
+               state=OrderedDict([('segment', 12345), ('language', 'english')]))
+    g.add_node(6, split=OrderedDict([(14, 'os'), (15, 'geo')]),
                state=OrderedDict([('segment', 67890), ('segment.age', (-float('inf'), 20.))]))
     g.add_node(7, split='geo',
                state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
@@ -49,9 +49,9 @@ def graph():
     g.add_node(13, is_leaf=True, output=0.20,
                state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.)),
                                   ('geo', ('US', 'BR'))]))
-    g.add_node(14, is_leaf=True, output=0.10,
+    g.add_node(14, is_leaf=True, is_smart=True, value=0.00004,
                state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
-                                  ('geo', ('UK', 'DE'))]))
+                                  ('os', 'windows')]))
     g.add_node(15, is_leaf=True, output=0.20,
                state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
                                   ('geo', ('US', 'BR'))]))
@@ -84,7 +84,7 @@ def graph():
     g.add_edge(0, 2, value=67890, type='assignment')
     g.add_edge(0, 3, value=13579, type='assignment')
     g.add_edge(1, 4, value=(0., 10.), type='range')
-    g.add_edge(1, 5, value=(10., 20.), type='range')
+    g.add_edge(1, 5, value='english', type='assignment')
     g.add_edge(2, 6, value=(0., 20.), type='range')
     g.add_edge(2, 7, value=(20., 40.), type='range')
     g.add_edge(3, 8, value=('UK', 'DE', 'US'), type='membership')
@@ -93,7 +93,7 @@ def graph():
     g.add_edge(4, 11, value=None, type='membership')
     g.add_edge(5, 12, value=('UK', 'DE'), type='membership')
     g.add_edge(5, 13, value=('US', 'BR'), type='membership')
-    g.add_edge(6, 14, value=('UK', 'DE'), type='membership')
+    g.add_edge(6, 14, value='windows', type='assignment')
     g.add_edge(6, 15, value=('US', 'BR'), type='membership')
     g.add_edge(7, 16, value=('UK', 'DE'), type='membership')
     g.add_edge(7, 17, value=None, type='membership')
@@ -183,32 +183,36 @@ def graph_compound_feature():
     g.add_node(1, split=('site_id', 'placement_id'), state={'geo': 'DE'})
     g.add_node(2, split=('site_id', 'placement_id'), state={'geo': 'UK'})
     g.add_node(
-        3, state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a'},
+        3, state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a')]),
         split='os'
     )
     g.add_node(
         4, is_leaf=True, output=.4,
-        state={'geo': 'DE', 'site_id': 1, 'placement_id': 'b'}
+        state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'b')])
     )
     g.add_node(
-        5, state={'geo': 'UK', 'site_id': 1, 'placement_id': 'a'},
+        5, state=OrderedDict([('geo', 'UK'), ('site_id', 1), ('placement_id', 'a')]),
         split='os'
     )
     g.add_node(
         6, is_leaf=True, output=.6,
-        state={'geo': 'UK', 'site_id': 1, 'placement_id': 'b'}
+        state=OrderedDict([('geo', 'UK'), ('site_id', 1), ('placement_id', 'b')])
     )
     g.add_node(
         7, is_leaf=True, output=.9,
-        state={'geo': 'UK', 'site_id': 2, 'placement_id': 'a'}
+        state=OrderedDict([('geo', 'UK'), ('site_id', 2), ('placement_id', 'a')])
     )
     g.add_node(
         8, is_leaf=True, output=.2,
-        state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a', 'os': 'linux'}
+        state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a'), ('os', 'linux')])
+    )
+    g.add_node(
+        15, is_leaf=True, output=.1,
+        state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a'), ('os', 'windows')])
     )
     g.add_node(
         9, is_leaf=True, output=.3,
-        state={'geo': 'UK', 'site_id': 1, 'placement_id': 'a', 'os': 'windows'}
+        state=OrderedDict([('geo', 'UK'), ('site_id', 2), ('placement_id', 'a'), ('os', 'windows')])
     )
     g.add_node(
         10, is_default_leaf=True, output=.1, state={}
@@ -234,6 +238,7 @@ def graph_compound_feature():
     g.add_edge(2, 6, value=(1, 'b'), type=('assignment', 'assignment'))
     g.add_edge(2, 7, value=(2, 'a'), type=('assignment', 'assignment'))
     g.add_edge(3, 8, value='linux', type='assignment')
+    g.add_edge(3, 15, value='windows', type='assignment')
     g.add_edge(5, 9, value='windows', type='assignment')
     g.add_edge(0, 10)
     g.add_edge(1, 11)

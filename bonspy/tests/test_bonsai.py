@@ -17,12 +17,13 @@ def test_switch_header(graph):
 
     switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == 'segment.age']
 
-    assert len(switch_header_nodes) == 2
+    assert len(switch_header_nodes) == 1
     assert all([d.get('switch_header') is not None for d in switch_header_nodes])
 
     for row in text:
-        if 'segment.age' in row:
-            assert row in ['switch segment[12345].age:', 'switch segment[67890].age:']
+        if '.age' in row:
+            assert row in ['switch segment[12345].age:', 'switch segment[67890].age:',
+                           'if segment[12345].age in (0 .. 10):']
 
 
 def test_switch_indent(graph):
@@ -114,8 +115,8 @@ def test_feature_validation(graph_two_range_features):
 def test_compound_feature(graph_compound_feature):
     tree = BonsaiTree(graph_compound_feature)
 
-    assert 'if every site_id=1, placement_id="a":' in tree.bonsai
-    assert 'elif every site_id=1, placement_id="b":' in tree.bonsai
+    assert 'every site_id=1, placement_id="a":' in tree.bonsai
+    assert 'every site_id=1, placement_id="b":' in tree.bonsai
 
 
 def test_if_elif_else_switch_default(parameterized_graph):
@@ -158,7 +159,8 @@ def test_if_elif_else_switch_default(parameterized_graph):
                     assert float(new_sublist[0].strip())
                 except ValueError:
                     assert re.match(
-                        r"value: (\d+\.\d*|compute\(\w+, (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_)\))",
+                        r"value: (no_bid|\d+\.\d*|compute\(\w+, (\d+\.\d*|_), "
+                        r"(\d+\.\d*|_), (\d+\.\d*|_), (\d+\.\d*|_)\))",
                         new_sublist[0].strip()
                     )
             else:
@@ -175,10 +177,55 @@ def test_segment_order(graph):
 def test_segment_order_mapping(graph):
     tree = BonsaiTree(
         graph,
-        feature_order={
+        feature_value_order={
             'segment': {12345: 1, 67890: 0}
         }
     )
 
     assert 'if segment[67890]' in tree.bonsai
     assert 'elif segment[12345]' in tree.bonsai
+
+
+def test_language_order_mapping(graph_compound_feature):
+    tree = BonsaiTree(
+        graph_compound_feature,
+        feature_value_order={
+            'os': {'windows': 0, 'linux': 1}
+        }
+    )
+
+    bonsai = tree.bonsai.replace('\n', '').replace('\t', '')
+
+    assert 'if os="windows":0.1000elif os="linux":0.2000' in bonsai
+
+
+def test_language_order_mapping_one_value(graph_compound_feature):
+    tree = BonsaiTree(
+        graph_compound_feature,
+        feature_value_order={
+            'os': {'windows': 0}
+        }
+    )
+
+    bonsai = tree.bonsai.replace('\n', '').replace('\t', '')
+
+    assert 'if os="windows":0.1000elif os="linux":0.2000' in bonsai
+
+
+def test_language_segment_age_order(graph):
+    tree = BonsaiTree(graph)
+
+    assert 'if segment[12345].age' in tree.bonsai
+    assert 'elif language' in tree.bonsai
+
+
+def test_feature_order_mapping(graph):
+    tree = BonsaiTree(
+        graph,
+        feature_order={
+            'segment.age': 1, 'language': 0
+        }
+    )
+
+    assert 'if language' in tree.bonsai
+    assert 'elif segment[12345].age' in tree.bonsai
