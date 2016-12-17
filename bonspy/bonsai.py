@@ -33,6 +33,17 @@ class BonsaiTree(nx.DiGraph):
     https://github.com/markovianhq/bonspy
 
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
+
+    :param graph: (optional) NetworkX graph to be exported to Bonsai.
+    :param join_statements: (optional), Dictionary indicating how to join multidimensional features.
+        Defaults to `every` for all features.
+    :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
+        Splitting the parent node on more than one feature is indicated through its `split` attribute
+        set to an OrderedDict object [(child id, feature the parent node is split on]).
+        The dictionary `feature_order` then provides the order these different features appear in the
+        Bonsai language output.
+    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
+        of the form {feature: {feature value: order position}}.
     """
 
     def __init__(self, graph=None, join_statements=None, feature_order=None, feature_value_order=None):
@@ -122,12 +133,33 @@ class BonsaiTree(nx.DiGraph):
         values = []
 
         for feature, value in self.node[x]['state'].items():
-            feature = self.feature_order.get(feature, len(feature))
-            value = self.feature_value_order.get(feature, {}).get(value, value)
-            values.append(feature)
-            values.append(value)
+            feature_key = self._get_feature_order_key(feature)
+            value_key = self._get_value_order_key(feature, value)
+            values.append(feature_key)
+            values.append(value_key)
 
         return values
+
+    def _get_feature_order_key(self, feature):
+        feature_order = self.feature_order
+        feature_order_key = self._get_order_key(dict_=feature_order, key=feature)
+        return feature_order_key
+
+    def _get_value_order_key(self, feature, value):
+        value_order = self.feature_value_order.get(feature, {})
+        value_order_key = self._get_order_key(dict_=value_order, key=value)
+        return value_order_key
+
+    @staticmethod
+    def _get_order_key(dict_, key):
+        order_key = 0
+        if not dict_ == {}:
+            try:
+                order_key = dict_[key]
+            except KeyError:
+                order_key = max(dict_.values()) + 1
+
+        return order_key
 
     def _assign_condition(self):
         root = self._get_root()
