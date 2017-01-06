@@ -49,7 +49,7 @@ def graph():
     g.add_node(13, is_leaf=True, output=0.20,
                state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.)),
                                   ('geo', ('US', 'BR'))]))
-    g.add_node(14, is_leaf=True, is_smart=True, value=0.00004,
+    g.add_node(14, is_leaf=True, is_smart=True, value=0.,
                state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.)),
                                   ('os', 'windows')]))
     g.add_node(15, is_leaf=True, output=0.20,

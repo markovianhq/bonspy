@@ -269,7 +269,7 @@ class BonsaiTree(nx.DiGraph):
         return value_line
 
     def _get_smart_leaf_output_value(self, node):
-        if self.node[node].get('value'):
+        if isinstance(self.node[node].get('value'), (int, float)):
             out_value = self._get_smart_leaf_output_bid_syntax(node)
         else:
             out_value = self._get_smart_leaf_output_compute_syntax(node)
