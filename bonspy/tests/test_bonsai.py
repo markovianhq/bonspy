@@ -229,3 +229,10 @@ def test_feature_order_mapping(graph):
 
     assert 'if language' in tree.bonsai
     assert 'elif segment[12345].age' in tree.bonsai
+
+
+def test_no_bid_present_in_output(graph):
+    tree = BonsaiTree(graph)
+    text = tree.bonsai
+
+    assert 'value: no_bid' in text
