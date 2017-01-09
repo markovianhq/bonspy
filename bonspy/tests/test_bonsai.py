@@ -23,7 +23,7 @@ def test_switch_header(graph):
     for row in text:
         if '.age' in row:
             assert row in ['switch segment[12345].age:', 'switch segment[67890].age:',
-                           'if segment[12345].age in (0 .. 10):']
+                           'elif segment[12345].age in (0 .. 10):']
 
 
 def test_switch_indent(graph):
@@ -227,8 +227,10 @@ def test_feature_order_mapping(graph):
         }
     )
 
+    # language comes first
     assert 'if language' in tree.bonsai
-    assert 'elif segment[12345].age' in tree.bonsai
+    # segment.age comes before browser
+    assert 'elif segment[12345].age' in tree.bonsai.split('elif browser="safari"')[0]
 
 
 def test_no_bid_present_in_output(graph):
