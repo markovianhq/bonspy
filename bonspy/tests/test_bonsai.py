@@ -23,7 +23,7 @@ def test_switch_header(graph):
     for row in text:
         if '.age' in row:
             assert row in ['switch segment[12345].age:', 'switch segment[67890].age:',
-                           'elif segment[12345].age in (0 .. 10):']
+                           'elif segment[12345].age range (0, 10):']
 
 
 def test_switch_indent(graph):

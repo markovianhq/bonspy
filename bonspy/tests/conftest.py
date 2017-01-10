@@ -317,6 +317,47 @@ def graph_with_default_node():
     return g
 
 
-@pytest.fixture(params=['graph', 'graph_two_range_features', 'graph_compound_feature', 'graph_with_default_node'])
+@pytest.fixture
+def small_graph():
+    g = nx.DiGraph()
+
+    g.add_node(0, split='user_hour', state=OrderedDict())
+    g.add_node(1, split='user_day',
+               state=OrderedDict([('user_hour', (None, 10))]))
+
+    g.add_node(2, split=OrderedDict([(5, 'user_day'), (6, 'os')]),
+               state=OrderedDict([('user_hour', (11.3, 15))]))
+
+    g.add_node(3, is_leaf=True, output=1.3,
+               state=OrderedDict([('user_hour', (None, 10)), ('user_day', (1, 4))]))
+
+    g.add_node(4, is_leaf=True, output=1.4,
+               state=OrderedDict([('user_hour', (None, 10)), ('user_day', (5, 6))]))
+
+    g.add_node(5, is_leaf=True, output=1.5,
+               state=OrderedDict([('user_hour', (11.3, 15)), ('user_day', (3, 6))]))
+
+    g.add_node(6, is_leaf=True, output=1.6,
+               state=OrderedDict([('user_hour', (11.3, 15)), ('os', 'linux')]))
+
+    g.add_node(7, is_default_leaf=True, output=0.7, state=OrderedDict())
+    g.add_node(8, is_default_leaf=True, output=0.8, state=OrderedDict([('user_hour', (None, 10))]))
+    g.add_node(9, is_default_leaf=True, output=0.9, state=OrderedDict([('user_hour', (11.3, 15))]))
+
+    g.add_edge(0, 1, value=(None, 10), type='range')
+    g.add_edge(0, 2, value=(11.3, 15), type='range')
+    g.add_edge(1, 3, value=(1, 4), type='range')
+    g.add_edge(1, 4, value=(5, 6), type='range')
+    g.add_edge(2, 5, value=(3, 6), type='range')
+    g.add_edge(2, 6, value='linux', type='assignment')
+    g.add_edge(0, 7)
+    g.add_edge(1, 8)
+    g.add_edge(2, 9)
+
+    return g
+
+
+@pytest.fixture(params=['graph', 'graph_two_range_features', 'graph_compound_feature',
+                        'graph_with_default_node', 'small_graph'])
 def parameterized_graph(request):
     return request.getfuncargvalue(request.param)
