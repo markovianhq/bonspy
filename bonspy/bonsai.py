@@ -221,10 +221,13 @@ class BonsaiTree(nx.DiGraph):
     def _adapt_switch_header_indentation(self):
         for node, data in self.nodes_iter(data=True):
             if data.get('switch_header'):
-                parent = self.predecessors(node)[0]
-                parent_indent = self.node[parent]['indent']
-                switch_header = self.node[node]['switch_header']
-                self.node[node]['switch_header'] = parent_indent + '\t' + switch_header
+                try:
+                    parent = self.predecessors(node)[0]
+                    parent_indent = self.node[parent]['indent']
+                    switch_header = self.node[node]['switch_header']
+                    self.node[node]['switch_header'] = parent_indent + '\t' + switch_header
+                except IndexError:  # node is root
+                    pass
 
     def _get_sorted_out_edges(self, node):
         edges = self.out_edges_iter(node)

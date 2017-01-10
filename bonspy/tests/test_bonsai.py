@@ -240,3 +240,14 @@ def test_no_bid_present_in_output(graph):
     text = tree.bonsai
 
     assert 'value: no_bid' in text
+
+
+def test_switch_non_switch_range(small_graph):
+    graph = small_graph
+    tree = BonsaiTree(graph)
+
+    assert 'switch user_hour' in tree.bonsai
+    assert 'switch user_day' in tree.bonsai
+    assert 'case ( .. 10)' in tree.bonsai
+    assert 'case (11 .. 15)' in tree.bonsai
+    assert 'if user_day range (3, 6)' in tree.bonsai
