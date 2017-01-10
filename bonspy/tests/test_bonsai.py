@@ -21,9 +21,11 @@ def test_switch_header(graph):
     assert all([d.get('switch_header') is not None for d in switch_header_nodes])
 
     for row in text:
-        if '.age' in row:
-            assert row in ['switch segment[12345].age:', 'switch segment[67890].age:',
-                           'elif segment[12345].age in (0 .. 10):']
+        if '.age' in row and 'segment[67890]' in row:
+            assert row in {'switch segment[67890].age:'}
+        elif '.age' in row and 'segment[12345]' in row:
+            assert row not in {'switch segment[12345].age:'}
+            assert 'elif' in row or 'if' in row
 
 
 def test_switch_indent(graph):
