@@ -228,8 +228,7 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_sorted_out_edges(self, node):
         edges = self.out_edges_iter(node)
-        keys = {'if': 0, 'elif': 1, 'else': 2}
-        edges = sorted(edges, key=lambda x: keys[self.node[x[1]]['condition']])
+        edges = sorted(edges, key=lambda x: self._sort_key(x[1]))
         return edges
 
     def _get_output_text(self, node):

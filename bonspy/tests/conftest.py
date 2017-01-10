@@ -17,7 +17,7 @@ def graph():
     g = nx.DiGraph()
 
     g.add_node(0, split='segment', state=OrderedDict())
-    g.add_node(1, split=OrderedDict([(4, 'segment.age'), (5, 'language')]),
+    g.add_node(1, split=OrderedDict([(4, 'segment.age'), (26, 'browser'), (5, 'language')]),
                state=OrderedDict([('segment', 12345)]))
     g.add_node(2, split='segment.age',
                state=OrderedDict([('segment', 67890)]))
@@ -31,6 +31,8 @@ def graph():
                state=OrderedDict([('segment', 67890), ('segment.age', (-float('inf'), 20.))]))
     g.add_node(7, split='geo',
                state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
+    g.add_node(26, is_leaf=True, output=1.1,
+               state=OrderedDict([('segment', 12345), ('browser', 'safari')]))
     g.add_node(8, is_leaf=True, output=0.13,
                state=OrderedDict([('segment', 13579),
                                   ('geo', ('UK', 'DE', 'US'))]))
@@ -85,6 +87,7 @@ def graph():
     g.add_edge(0, 3, value=13579, type='assignment')
     g.add_edge(1, 4, value=(0., 10.), type='range')
     g.add_edge(1, 5, value='english', type='assignment')
+    g.add_edge(1, 26, value='safari', type='assignment')
     g.add_edge(2, 6, value=(0., 20.), type='range')
     g.add_edge(2, 7, value=(20., 40.), type='range')
     g.add_edge(3, 8, value=('UK', 'DE', 'US'), type='membership')
