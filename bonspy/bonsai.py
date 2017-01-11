@@ -539,7 +539,7 @@ class BonsaiTree(nx.DiGraph):
     @staticmethod
     def _is_finite(x):
         try:
-            is_finite = abs(x) != float('inf')
+            is_finite = abs(x) < float('inf')
             return is_finite
         except TypeError:
             return False
