@@ -415,32 +415,6 @@ class BonsaiTree(nx.DiGraph):
 
         return out
 
-    def _get_range_statement(self, value, feature):
-        left_bound, right_bound = value
-
-        if self._is_finite(left_bound) and self._is_finite(left_bound):
-            left_bound = int(left_bound)
-            right_bound = int(right_bound)
-            out = '{feature} range ({left_bound}, {right_bound})'.format(
-                feature=feature,
-                left_bound=left_bound,
-                right_bound=right_bound
-            )
-        elif not self._is_finite(left_bound) and self._is_finite(left_bound):
-            right_bound = int(right_bound)
-            out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
-        elif self._is_finite(left_bound) and not self._is_finite(left_bound):
-            right_bound = int(right_bound)
-            out = '{feature} >= {right_bound}'.format(feature=feature, right_bound=right_bound)
-        else:
-            raise ValueError(
-                'Value "{}" not reasonable as value of a range feature.'.format(
-                    value
-                )
-            )
-
-        return out
-
     def _get_if_conditional(self, value, type_, feature):
         if type_ == 'range':
             out = self._get_range_statement(value, feature)
@@ -483,6 +457,32 @@ class BonsaiTree(nx.DiGraph):
         else:
             raise ValueError(
                 'Unable to deduce conditional statement for type "{}".'.format(type_)
+            )
+
+        return out
+
+    def _get_range_statement(self, value, feature):
+        left_bound, right_bound = value
+
+        if self._is_finite(left_bound) and self._is_finite(left_bound):
+            left_bound = int(left_bound)
+            right_bound = int(right_bound)
+            out = '{feature} range ({left_bound}, {right_bound})'.format(
+                feature=feature,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+        elif not self._is_finite(left_bound) and self._is_finite(left_bound):
+            right_bound = int(right_bound)
+            out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
+        elif self._is_finite(left_bound) and not self._is_finite(left_bound):
+            right_bound = int(right_bound)
+            out = '{feature} >= {right_bound}'.format(feature=feature, right_bound=right_bound)
+        else:
+            raise ValueError(
+                'Value "{}" not reasonable as value of a range feature.'.format(
+                    value
+                )
             )
 
         return out
