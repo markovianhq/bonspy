@@ -221,7 +221,10 @@ class BonsaiTree(nx.DiGraph):
     def _adapt_switch_header_indentation(self):
         for node, data in self.nodes_iter(data=True):
             if data.get('switch_header'):
-                parent = self.predecessors(node)[0]
+                try:
+                    parent = self.predecessors(node)[0]
+                except IndexError:  # node is root
+                    continue
                 parent_indent = self.node[parent]['indent']
                 switch_header = self.node[node]['switch_header']
                 self.node[node]['switch_header'] = parent_indent + '\t' + switch_header
@@ -321,18 +324,19 @@ class BonsaiTree(nx.DiGraph):
         type_ = self.edge[parent][child].get('type')
         conditional = self.node[child]['condition']
         feature = self._get_feature(parent, child, state_node=child)
+        switch_header = self.node[parent].get('switch_header')
 
-        if self.node[parent].get('switch_header') and type_ == 'range':
-            out = self._get_range_statement(indent, value)
+        if switch_header and type_ == 'range':
+            out = self._get_switch_header_range_statement(indent, value)
         else:
             out = '{indent}{conditional}'
             if type_ is not None and all(isinstance(x, (list, tuple)) for x in (feature, type_)):
                 join_statement = self._get_join_statement(feature)
                 out += ' ' + join_statement + ' ' + ', '.join(
-                    self._get_if_conditional(indent, v, t, f) for v, t, f in zip(value, type_, feature)
+                    self._get_if_conditional(v, t, f) for v, t, f in zip(value, type_, feature)
                 )
             elif type_ is not None and not any(isinstance(x, (list, tuple)) for x in (feature, type_)):
-                out += ' ' + self._get_if_conditional(indent, value, type_, feature)
+                out += ' ' + self._get_if_conditional(value, type_, feature)
             elif type_ is None:
                 out += ''
             else:
@@ -385,7 +389,7 @@ class BonsaiTree(nx.DiGraph):
         return feature
 
     @staticmethod
-    def _get_range_statement(indent, value, feature=None):
+    def _get_switch_header_range_statement(indent, value):
         left_bound, right_bound = value
         try:
             left_bound = int(left_bound)
@@ -403,24 +407,17 @@ class BonsaiTree(nx.DiGraph):
                 )
             )
 
-        if feature is None:
-            out = '{indent}case ({left_bound} .. {right_bound}):\n'.format(
-                indent=indent,
-                left_bound=left_bound,
-                right_bound=right_bound
-            )
-        else:
-            out = '{feature} in ({left_bound} .. {right_bound})'.format(
-                feature=feature,
-                left_bound=left_bound,
-                right_bound=right_bound
-            )
+        out = '{indent}case ({left_bound} .. {right_bound}):\n'.format(
+            indent=indent,
+            left_bound=left_bound,
+            right_bound=right_bound
+        )
 
         return out
 
-    def _get_if_conditional(self, indent, value, type_, feature):
+    def _get_if_conditional(self, value, type_, feature):
         if type_ == 'range':
-            out = self._get_range_statement(indent, value, feature)
+            out = self._get_range_statement(value, feature)
         elif type_ == 'membership':
             try:
                 value = tuple(value)
@@ -460,6 +457,32 @@ class BonsaiTree(nx.DiGraph):
         else:
             raise ValueError(
                 'Unable to deduce conditional statement for type "{}".'.format(type_)
+            )
+
+        return out
+
+    def _get_range_statement(self, value, feature):
+        left_bound, right_bound = value
+
+        if self._is_finite(left_bound) and self._is_finite(left_bound):
+            left_bound = int(left_bound)
+            right_bound = int(right_bound)
+            out = '{feature} range ({left_bound}, {right_bound})'.format(
+                feature=feature,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+        elif not self._is_finite(left_bound) and self._is_finite(left_bound):
+            right_bound = int(right_bound)
+            out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
+        elif self._is_finite(left_bound) and not self._is_finite(left_bound):
+            right_bound = int(right_bound)
+            out = '{feature} >= {right_bound}'.format(feature=feature, right_bound=right_bound)
+        else:
+            raise ValueError(
+                'Value "{}" not reasonable as value of a range feature.'.format(
+                    value
+                )
             )
 
         return out
@@ -511,4 +534,12 @@ class BonsaiTree(nx.DiGraph):
             float(x)
             return True
         except ValueError:
+            return False
+
+    @staticmethod
+    def _is_finite(x):
+        try:
+            is_finite = abs(x) < float('inf')
+            return is_finite
+        except TypeError:
             return False

@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='bonspy',
-    version='0.8.2',
+    version='0.8.3',
     description='Library that converts bidding trees to the AppNexus Bonsai language.',
     author='Alexander Volkmann, Georg Walther',
     author_email='contact@markovian.com',
