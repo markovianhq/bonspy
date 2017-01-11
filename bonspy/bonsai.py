@@ -223,11 +223,11 @@ class BonsaiTree(nx.DiGraph):
             if data.get('switch_header'):
                 try:
                     parent = self.predecessors(node)[0]
-                    parent_indent = self.node[parent]['indent']
-                    switch_header = self.node[node]['switch_header']
-                    self.node[node]['switch_header'] = parent_indent + '\t' + switch_header
                 except IndexError:  # node is root
-                    pass
+                    continue
+                parent_indent = self.node[parent]['indent']
+                switch_header = self.node[node]['switch_header']
+                self.node[node]['switch_header'] = parent_indent + '\t' + switch_header
 
     def _get_sorted_out_edges(self, node):
         edges = self.out_edges_iter(node)
