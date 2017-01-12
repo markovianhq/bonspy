@@ -464,7 +464,7 @@ class BonsaiTree(nx.DiGraph):
     def _get_range_statement(self, value, feature):
         left_bound, right_bound = value
 
-        if self._is_finite(left_bound) and self._is_finite(left_bound):
+        if self._is_finite(left_bound) and self._is_finite(right_bound):
             left_bound = int(left_bound)
             right_bound = int(right_bound)
             out = '{feature} range ({left_bound}, {right_bound})'.format(
@@ -472,12 +472,12 @@ class BonsaiTree(nx.DiGraph):
                 left_bound=left_bound,
                 right_bound=right_bound
             )
-        elif not self._is_finite(left_bound) and self._is_finite(left_bound):
+        elif not self._is_finite(left_bound) and self._is_finite(right_bound):
             right_bound = int(right_bound)
             out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
-        elif self._is_finite(left_bound) and not self._is_finite(left_bound):
-            right_bound = int(right_bound)
-            out = '{feature} >= {right_bound}'.format(feature=feature, right_bound=right_bound)
+        elif self._is_finite(left_bound) and not self._is_finite(right_bound):
+            left_bound = int(left_bound)
+            out = '{feature} >= {left_bound}'.format(feature=feature, left_bound=left_bound)
         else:
             raise ValueError(
                 'Value "{}" not reasonable as value of a range feature.'.format(
