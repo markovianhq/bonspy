@@ -6,6 +6,7 @@ from __future__ import (
 )
 
 from collections import deque
+import pytest
 import re
 
 from bonspy import BonsaiTree
@@ -251,3 +252,26 @@ def test_switch_non_switch_range(small_graph):
     assert 'case ( .. 10)' in tree.bonsai
     assert 'case (11 .. 15)' in tree.bonsai
     assert 'if user_day range (3, 6)' in tree.bonsai
+
+
+def test_get_range_statement():
+    bonsai = BonsaiTree()
+    get_range_statement = bonsai._get_range_statement
+    values_dict = {1: (None, 1),
+                   2: (1, None),
+                   3: (1, 2),
+                   4: (None, None),
+                   5: (1, 1),
+                   6: (-float('inf'), 1),
+                   7: (1, float('inf'))
+                    }
+    feature = 'some_feature'
+
+    assert get_range_statement(values_dict[1], feature) == 'some_feature <= 1'
+    assert get_range_statement(values_dict[2], feature) == 'some_feature >= 1'
+    assert get_range_statement(values_dict[3], feature) == 'some_feature range (1, 2)'
+    with pytest.raises(ValueError):
+        get_range_statement(values_dict[4], feature)
+    assert get_range_statement(values_dict[5], feature) == 'some_feature range (1, 1)'
+    assert get_range_statement(values_dict[6], feature) == 'some_feature <= 1'
+    assert get_range_statement(values_dict[7], feature) == 'some_feature >= 1'
