@@ -264,7 +264,7 @@ def test_get_range_statement():
                    5: (1, 1),
                    6: (-float('inf'), 1),
                    7: (1, float('inf'))
-                    }
+                   }
     feature = 'some_feature'
 
     assert get_range_statement(values_dict[1], feature) == 'some_feature <= 1'
