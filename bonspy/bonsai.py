@@ -390,6 +390,9 @@ class BonsaiTree(nx.DiGraph):
 
     @staticmethod
     def _get_switch_header_range_statement(indent, value):
+        if value is None:
+            return ''
+
         left_bound, right_bound = value
         try:
             left_bound = int(left_bound)
@@ -416,48 +419,60 @@ class BonsaiTree(nx.DiGraph):
         return out
 
     def _get_if_conditional(self, value, type_, feature):
-        if type_ == 'range':
-            out = self._get_range_statement(value, feature)
-        elif type_ == 'membership':
-            try:
-                value = tuple(value)
-                if isinstance(value[0], basestring):
-                    value = '(\"{}\")'.format('\",\"'.join(value))
-                out = '{feature} in {value}'.format(
-                    feature=feature,
-                    value=value
-                )
-            except TypeError:
-                out = '{feature} absent'.format(feature=feature)
-        elif type_ == 'assignment':
-            if value is not None:
-                comparison = '='
-                value = '"{}"'.format(value) if not self._is_numerical(value) else value
 
-                if feature.split('.')[0] not in compound_features:
-                    out = '{feature}{comparison}{value}'.format(
-                        feature=feature,
-                        comparison=comparison,
-                        value=value
-                    )
-                elif feature in compound_features:
-                    out = '{feature}[{value}]'.format(
-                        feature=feature,
-                        value=value
-                    )
-                else:
-                    object_, attribute = feature.split('.')
-                    out = '{feature}[{value}].{attribute}'.format(
-                        feature=object_,
-                        value=value,
-                        attribute=attribute
-                    )
-            else:
-                out = '{feature} absent'.format(feature=feature)
-        else:
+        if type_ not in {'range', 'membership', 'assignment'}:
             raise ValueError(
                 'Unable to deduce conditional statement for type "{}".'.format(type_)
             )
+
+        if value is None:
+            out = self._get_if_conditional_missing_value(type_, feature)
+        else:
+            out = self._get_if_conditional_present_value(value, type_, feature)
+
+        return out
+
+    def _get_if_conditional_missing_value(self, type_, feature):
+        if feature == 'segment.age':
+            out = ''
+        else:
+            out = '{feature} absent'.format(feature=feature)
+
+        return out
+
+    def _get_if_conditional_present_value(self, value, type_, feature):
+        if type_ == 'range':
+            out = self._get_range_statement(value, feature)
+        elif type_ == 'membership':
+            value = tuple(value)
+            if isinstance(value[0], basestring):
+                value = '(\"{}\")'.format('\",\"'.join(value))
+            out = '{feature} in {value}'.format(
+                feature=feature,
+                value=value
+            )
+        elif type_ == 'assignment':
+            comparison = '='
+            value = '"{}"'.format(value) if not self._is_numerical(value) else value
+
+            if feature.split('.')[0] not in compound_features:
+                out = '{feature}{comparison}{value}'.format(
+                    feature=feature,
+                    comparison=comparison,
+                    value=value
+                )
+            elif feature in compound_features:
+                out = '{feature}[{value}]'.format(
+                    feature=feature,
+                    value=value
+                )
+            else:
+                object_, attribute = feature.split('.')
+                out = '{feature}[{value}].{attribute}'.format(
+                    feature=object_,
+                    value=value,
+                    attribute=attribute
+                )
 
         return out
 
