@@ -275,3 +275,9 @@ def test_get_range_statement():
     assert get_range_statement(values_dict[5], feature) == 'some_feature range (1, 1)'
     assert get_range_statement(values_dict[6], feature) == 'some_feature <= 1'
     assert get_range_statement(values_dict[7], feature) == 'some_feature >= 1'
+
+
+def test_missing_values(missing_values_graph):
+    graph = missing_values_graph
+
+    tree = BonsaiTree(graph)

@@ -6,6 +6,7 @@ from __future__ import (
 )
 
 from collections import OrderedDict
+import math
 
 import networkx as nx
 
@@ -361,3 +362,137 @@ def small_graph():
                         'graph_with_default_node', 'small_graph'])
 def parameterized_graph(request):
     return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture
+def missing_values_graph():
+    g = nx.DiGraph()
+
+    g.add_node('root', split='segment', state=OrderedDict())
+    g.add_node(
+        'root_default',
+        is_default_leaf=True,
+        state=OrderedDict(),
+        output=.1
+    )
+    g.add_node('segment_1', split='segment.age', state=OrderedDict([('segment', 1)]))
+    g.add_node(
+        'segment_1_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', 1)]),
+        output=.1
+    )
+    g.add_node('segment_2', split='os', state=OrderedDict([('segment', 2)]))
+    g.add_node(
+        'segment_2_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', 2)]),
+        output=.1
+    )
+    g.add_node('segment_missing', split='segment.age', state=OrderedDict([('segment', None)]))
+    g.add_node(
+        'segment_missing_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_1_age_lower',
+        is_leaf=True,
+        state=OrderedDict([('segment', 1), ('segment.age', (-math.inf, 10.))]),
+        output=.1
+    )
+    g.add_node(
+        'segment_1_age_upper',
+        is_leaf=True,
+        state=OrderedDict([('segment', 1), ('segment.age', (10., math.inf))]),
+        output=.1
+    )
+    g.add_node(
+        'segment_2_os_known',
+        is_leaf=True,
+        state=OrderedDict([('segment', 2), ('os', ('linux', 'osx'))]),
+        output=.1
+    )
+    g.add_node(
+        'segment_2_os_unknown',
+        is_leaf=True,
+        state=OrderedDict([('segment', 2), ('os', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_missing_age_missing',
+        split='os',
+        state=OrderedDict([('segment', None), ('segment.age', None)])
+    )
+    g.add_node(
+        'segment_missing_age_missing_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', None), ('segment.age', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_missing_age_missing_os_known',
+        is_leaf=True,
+        state=OrderedDict([('segment', None), ('segment.age', None), ('os', ('linux',))]),
+        output=.1
+    )
+
+    g.add_edge('root', 'segment_1', value=1, type='assignment')
+    g.add_edge('root', 'segment_2', value=2, type='assignment')
+    g.add_edge('root', 'segment_missing', value=None, type='assignment')
+    g.add_edge('root', 'root_default')
+
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_lower',
+        value=(-math.inf, 10.),
+        type='range'
+    )
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_upper',
+        value=(10., math.inf),
+        type='range'
+    )
+    g.add_edge(
+        'segment_1',
+        'segment_1_default'
+    )
+
+    g.add_edge(
+        'segment_2',
+        'segment_2_os_known',
+        value=('linux', 'osx'),
+        type='membership'
+    )
+    g.add_edge(
+        'segment_2',
+        'segment_2_os_unknown',
+        value=None,
+        type='membership'
+    )
+    g.add_edge(
+        'segment_2',
+        'segment_2_default'
+    )
+
+    g.add_edge(
+        'segment_missing',
+        'segment_missing_age_missing',
+        value=None,
+        type='range'
+    )
+    g.add_edge(
+        'segment_missing',
+        'segment_missing_default'
+    )
+
+    g.add_edge(
+        'segment_missing_age_missing',
+        'segment_missing_age_missing_os_known',
+        value=('linux',),
+        type='membership'
+    )
+
+    return g
