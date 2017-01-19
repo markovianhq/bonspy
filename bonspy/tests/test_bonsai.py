@@ -300,7 +300,7 @@ def test_missing_values(missing_values_graph):
             else:
                 0.1000
         elif segment absent:
-            if segment[None].age in ("linux"):
+            if os in ("linux"):
                 0.1000
             else:
                 0.1000
