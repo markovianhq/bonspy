@@ -281,3 +281,28 @@ def test_missing_values(missing_values_graph):
     graph = missing_values_graph
 
     tree = BonsaiTree(graph)
+
+    assert re.sub(r'\W+', '', tree.bonsai) == re.sub(
+        r'\W+', '', '''
+        if segment[1]:
+            if segment[1].age <= 10:
+                0.1000
+            elif segment[1].age >= 10:
+                0.1000
+            else:
+                0.1000
+        elif segment[2]:
+            if os in ("linux","osx"):
+                0.1000
+            elif os absent:
+                0.1000
+            else:
+                0.1000
+        elif segment absent:
+            if segment[None].age in ("linux"):
+                0.1000
+            else:
+                0.1000
+        else:
+            0.1000
+    ''')
