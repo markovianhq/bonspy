@@ -24,6 +24,9 @@ class ConstantDict(dict):
         super(ConstantDict, self).__init__()
         self.constant = constant
 
+    def values(self):
+        return [self.constant]
+
     def __delitem__(self, key):
         try:
             super(ConstantDict, self).__delitem__(key)
