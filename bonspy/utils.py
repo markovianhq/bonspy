@@ -30,6 +30,14 @@ class ConstantDict(dict):
         except KeyError:
             pass
 
+    def __eq__(self, other):
+        if type(other) is not type(self):
+            return False
+        elif other.constant == self.constant:
+            return True
+        else:
+            return False
+
     def __getitem__(self, item):
         try:
             return super(ConstantDict, self).__getitem__(item)
