@@ -13,7 +13,7 @@ from functools import cmp_to_key
 import networkx as nx
 
 from bonspy.features import compound_features, get_validated
-from bonspy.utils import compare_vectors
+from bonspy.utils import compare_vectors, ConstantDict
 
 try:
     basestring
@@ -51,6 +51,7 @@ class BonsaiTree(nx.DiGraph):
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
             self.feature_value_order = feature_value_order or {}
+            self._transform_splits()
             self._remove_missing_compound_features()
             self._validate_feature_values()
             self._assign_indent()
@@ -64,6 +65,18 @@ class BonsaiTree(nx.DiGraph):
     @property
     def bonsai_encoded(self):
         return base64.b64encode(self.bonsai.encode('ascii')).decode()
+
+    def _transform_splits(self):
+        root_id = self._get_root()
+
+        for node_id in self.bfs_nodes(root_id):
+            try:
+                split = self.node[node_id]['split']
+            except KeyError:
+                continue
+
+            if not isinstance(split, dict):
+                self.node[node_id]['split'] = ConstantDict(split)
 
     def _remove_missing_compound_features(self):
         root_id = self._get_root()

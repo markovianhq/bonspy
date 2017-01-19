@@ -17,3 +17,21 @@ def _compare(x, y):
         return 1
     else:
         return 0
+
+
+class ConstantDict(dict):
+    def __init__(self, constant):
+        super(ConstantDict, self).__init__()
+        self.constant = constant
+
+    def __delitem__(self, key):
+        try:
+            super(ConstantDict, self).__delitem__(key)
+        except KeyError:
+            pass
+
+    def __getitem__(self, item):
+        try:
+            return super(ConstantDict, self).__getitem__(item)
+        except KeyError:
+            return self.constant
