@@ -51,6 +51,7 @@ class BonsaiTree(nx.DiGraph):
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
             self.feature_value_order = feature_value_order or {}
+            self._remove_missing_compound_features()
             self._validate_feature_values()
             self._assign_indent()
             self._assign_condition()
@@ -63,6 +64,68 @@ class BonsaiTree(nx.DiGraph):
     @property
     def bonsai_encoded(self):
         return base64.b64encode(self.bonsai.encode('ascii')).decode()
+
+    def _remove_missing_compound_features(self):
+        root_id = self._get_root()
+
+        for node_id in self.bfs_nodes(root_id):
+            try:
+                feature = next(reversed(self.node[node_id]['state']))
+            except StopIteration:
+                continue  # node_id is root_id
+
+            value = self.node[node_id]['state'][feature]
+
+            is_compound_attribute = self._is_compound_attribute(feature)
+
+            if is_compound_attribute and value is None:
+                self._splice_out_node(node_id, feature)
+
+    def bfs_nodes(self, source):
+        queue = deque([source])
+
+        while queue:
+            node_id = queue.popleft()
+            child_ids = self.successors_iter(node_id)
+            queue.extend(child_ids)
+
+            yield node_id
+
+    def _is_compound_attribute(self, feature):
+        compound_feature = feature.split('.')
+        if len(compound_feature) < 2:
+            return False
+        compound_feature = compound_feature[0]
+
+        if compound_feature in compound_features:
+            return True
+
+    def _splice_out_node(self, source, feature):
+        self._remove_feature_from_state(source, feature)
+        self._skip_node(source)
+
+    def _remove_feature_from_state(self, source, feature):
+        for node_id in self.bfs_nodes(source):
+            del self.node[node_id]['state'][feature]
+
+    def _skip_node(self, node_id):
+        parent_id = next(iter(self.predecessors_iter(node_id)))
+
+        for _, child_id, data in self.edges(nbunch=(node_id,), data=True):
+            if data.get('is_default_leaf'):
+                continue
+            else:
+                self.add_edge(parent_id, child_id, attr_dict=data)
+                self.remove_edge(node_id, child_id)
+
+        self._skip_node_update_split(parent_id, node_id)
+        self.remove_edge(parent_id, node_id)
+
+    def _skip_node_update_split(self, parent_id, node_id):
+        del self.node[parent_id]['split'][node_id]
+
+        node_split = self.node[node_id]['split']
+        self.node[parent_id]['split'].update(node_split)
 
     def _validate_feature_values(self):
         self._validate_node_states()
