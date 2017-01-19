@@ -285,12 +285,13 @@ def test_missing_values(missing_values_graph):
     assert re.sub(r'\W+', '', tree.bonsai) == re.sub(
         r'\W+', '', '''
         if segment[1]:
-            if segment[1].age <= 10:
-                0.1000
-            elif segment[1].age >= 10:
-                0.1000
-            else:
-                0.1000
+            switch segment[1].age:
+                case ( .. 10):
+                    0.1000
+                case (10 .. ):
+                    0.1000
+                default:
+                    0.1000
         elif segment[2]:
             if os in ("linux","osx"):
                 0.1000
