@@ -94,6 +94,8 @@ class BonsaiTree(nx.DiGraph):
             if is_compound_attribute and value is None:
                 self._splice_out_node(node_id, feature)
 
+        self._remove_disconnected_nodes()
+
     def bfs_nodes(self, source):
         queue = deque([source])
 
@@ -139,6 +141,19 @@ class BonsaiTree(nx.DiGraph):
 
         node_split = self.node[node_id]['split']
         self.node[parent_id]['split'].update(node_split)
+
+    def _remove_disconnected_nodes(self):
+        node_ids = self._get_disconnected_nodes()
+
+        while node_ids:
+            self.remove_nodes_from(node_ids)
+
+            node_ids = self._get_disconnected_nodes()
+
+    def _get_disconnected_nodes(self):
+        node_ids = [n for n in self.nodes_iter() if not self.successors(n) and not self.predecessors(n)]
+
+        return node_ids
 
     def _validate_feature_values(self):
         self._validate_node_states()
