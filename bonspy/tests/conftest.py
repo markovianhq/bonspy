@@ -6,7 +6,6 @@ from __future__ import (
 )
 
 from collections import OrderedDict
-import math
 
 import networkx as nx
 
@@ -423,13 +422,13 @@ def missing_values_graph():
     g.add_node(
         'segment_1_age_lower',
         is_leaf=True,
-        state=OrderedDict([('segment', 1), ('segment.age', (-math.inf, 10.))]),
+        state=OrderedDict([('segment', 1), ('segment.age', (-float('inf'), 10.))]),
         output=.1
     )
     g.add_node(
         'segment_1_age_upper',
         is_leaf=True,
-        state=OrderedDict([('segment', 1), ('segment.age', (10., math.inf))]),
+        state=OrderedDict([('segment', 1), ('segment.age', (10., float('inf')))]),
         output=.1
     )
     g.add_node(
@@ -470,13 +469,13 @@ def missing_values_graph():
     g.add_edge(
         'segment_1',
         'segment_1_age_lower',
-        value=(-math.inf, 10.),
+        value=(-float('inf'), 10.),
         type='range'
     )
     g.add_edge(
         'segment_1',
         'segment_1_age_upper',
-        value=(10., math.inf),
+        value=(10., float('inf')),
         type='range'
     )
     g.add_edge(
