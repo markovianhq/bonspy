@@ -10,13 +10,13 @@ import pytest
 import re
 
 from bonspy import BonsaiTree
+from bonspy.utils import ConstantDict
 
 
 def test_switch_header(graph):
     tree = BonsaiTree(graph)
     text = tree.bonsai.replace('\t', '').split('\n')
-
-    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == 'segment.age']
+    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == ConstantDict('segment.age')]
 
     assert len(switch_header_nodes) == 1
     assert all([d.get('switch_header') is not None for d in switch_header_nodes])
@@ -275,3 +275,41 @@ def test_get_range_statement():
     assert get_range_statement(values_dict[5], feature) == 'some_feature range (1, 1)'
     assert get_range_statement(values_dict[6], feature) == 'some_feature <= 1'
     assert get_range_statement(values_dict[7], feature) == 'some_feature >= 1'
+
+
+def test_missing_values(missing_values_graph):
+    graph = missing_values_graph
+
+    feature_value_order = {
+        'segment': {1: 0, 2: 1},
+        'os': {("linux", "osx"): 0, ("linux",): 1},
+        'segment.age': {(-float('inf'), 10.): 0, (10., -float('inf')): 1}
+    }
+
+    tree = BonsaiTree(graph, feature_value_order=feature_value_order)
+
+    assert re.sub(r'\W+', '', tree.bonsai) == re.sub(
+        r'\W+', '', '''
+        if segment[1]:
+            switch segment[1].age:
+                case ( .. 10):
+                    0.1000
+                case (10 .. ):
+                    0.1000
+                default:
+                    0.1000
+        elif segment[2]:
+            if os in ("linux","osx"):
+                0.1000
+            elif os absent:
+                0.1000
+            else:
+                0.1000
+        elif segment absent:
+            if os in ("linux"):
+                0.1000
+            else:
+                0.1000
+        else:
+            0.1000
+    ''')

@@ -116,46 +116,70 @@ def graph():
 def graph_two_range_features():
     g = nx.DiGraph()
 
-    g.add_node(0, split=('segment', 'segment.age'), state={})
-    g.add_node(1, split='user_hour', state={'segment': 12345, 'segment.age': (0., 10.)})
-    g.add_node(2, split='user_hour', state={'segment': 12345, 'segment.age': (10., 20.)})
-    g.add_node(3, split='user_hour', state={'segment': 67890, 'segment.age': (0., 20.)})
-    g.add_node(4, split='user_hour', state={'segment': 67890, 'segment.age': (20., 40.)})
+    g.add_node(0, split=('segment', 'segment.age'), state=OrderedDict())
+    g.add_node(1, split='user_hour', state=OrderedDict([('segment', 12345), ('segment.age', (0., 10.))]))
+    g.add_node(2, split='user_hour', state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
+    g.add_node(3, split='user_hour', state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.))]))
+    g.add_node(4, split='user_hour', state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
     g.add_node(5, is_leaf=True, output=0.10,
-               state={'segment': 12345, 'segment.age': (0, 10.),
-                      'user_hour': (0., 12.)})
+               state=OrderedDict([
+                   ('segment', 12345),
+                   ('segment.age', (0, 10.)),
+                   ('user_hour', (0., 12.))
+               ]))
     g.add_node(6, is_leaf=True, output=0.20,
-               state={'segment': 12345, 'segment.age': (0, 10.),
-                      'user_hour': (12., 100.)})
+               state=OrderedDict([
+                   ('segment', 12345),
+                   ('segment.age', (0, 10.)),
+                   ('user_hour', (12., 100.))
+               ]))
     g.add_node(7, is_leaf=True, output=0.10,
-               state={'segment': 12345, 'segment.age': (10., 20.),
-                      'user_hour': (0., 12.)})
+               state=OrderedDict([
+                   ('segment', 12345),
+                   ('segment.age', (10., 20.)),
+                   ('user_hour', (0., 12.))
+               ]))
     g.add_node(8, is_leaf=True, output=0.20,
-               state={'segment': 12345, 'segment.age': (10., 20.),
-                      'user_hour': (12., 100.)})
+               state=OrderedDict([
+                   ('segment', 12345),
+                   ('segment.age', (10., 20.)),
+                   ('user_hour', (12., 100.))
+               ]))
     g.add_node(9, is_leaf=True, output=0.10,
-               state={'segment': 67890, 'segment.age': (0., 20.),
-                      'user_hour': (0., 12.)})
+               state=OrderedDict([
+                   ('segment', 67890),
+                   ('segment.age', (0., 20.)),
+                   ('user_hour', (0., 12.))
+               ]))
     g.add_node(10, is_leaf=True, output=0.20,
-               state={'segment': 67890, 'segment.age': (0., 20.),
-                      'user_hour': (12., 100.)})
+               state=OrderedDict([
+                   ('segment', 67890),
+                   ('segment.age', (0., 20.)),
+                   ('user_hour', (12., 100.))
+               ]))
     g.add_node(11, is_leaf=True, output=0.10,
-               state={'segment': 67890, 'segment.age': (20., 40.),
-                      'user_hour': (0., 12.)})
+               state=OrderedDict([
+                   ('segment', 67890),
+                   ('segment.age', (20., 40.)),
+                   ('user_hour', (0., 12.))
+               ]))
     g.add_node(12, is_leaf=True, output=0.20,
-               state={'segment': 67890, 'segment.age': (20., 40.),
-                      'user_hour': (12., 100.)})
-    g.add_node(13, is_default_leaf=True, output=0.05, state={})
-    g.add_node(14, is_default_leaf=True, output=0.05, state={'segment': 12345})
-    g.add_node(15, is_default_leaf=True, output=0.05, state={'segment': 67890})
+               state=OrderedDict([
+                   ('segment', 67890),
+                   ('segment.age', (20., 40.)),
+                   ('user_hour', (12., 100.))
+               ]))
+    g.add_node(13, is_default_leaf=True, output=0.05, state=OrderedDict())
+    g.add_node(14, is_default_leaf=True, output=0.05, state=OrderedDict([('segment', 12345)]))
+    g.add_node(15, is_default_leaf=True, output=0.05, state=OrderedDict([('segment', 67890)]))
     g.add_node(16, is_default_leaf=True, output=0.05,
-               state={'segment': 12345, 'segment.age': (0., 10.)})
+               state=OrderedDict([('segment', 12345), ('segment.age', (0., 10.))]))
     g.add_node(17, is_default_leaf=True, output=0.05,
-               state={'segment': 12345, 'segment.age': (10., 20.)})
+               state=OrderedDict([('segment', 12345), ('segment.age', (10., 20.))]))
     g.add_node(18, is_default_leaf=True, output=0.05,
-               state={'segment': 67890, 'segment.age': (0., 20.)})
+               state=OrderedDict([('segment', 67890), ('segment.age', (0., 20.))]))
     g.add_node(19, is_default_leaf=True, output=0.05,
-               state={'segment': 67890, 'segment.age': (20., 40.)})
+               state=OrderedDict([('segment', 67890), ('segment.age', (20., 40.))]))
 
     g.add_edge(0, 1, value=(12345, (0., 10.)), type=('assignment', 'range'))
     g.add_edge(0, 2, value=(12345, (10., 20.)), type=('assignment', 'range'))
@@ -182,9 +206,9 @@ def graph_two_range_features():
 def graph_compound_feature():
     g = nx.DiGraph()
 
-    g.add_node(0, split='geo', state={})
-    g.add_node(1, split=('site_id', 'placement_id'), state={'geo': 'DE'})
-    g.add_node(2, split=('site_id', 'placement_id'), state={'geo': 'UK'})
+    g.add_node(0, split='geo', state=OrderedDict())
+    g.add_node(1, split=('site_id', 'placement_id'), state=OrderedDict([('geo', 'DE')]))
+    g.add_node(2, split=('site_id', 'placement_id'), state=OrderedDict([('geo', 'UK')]))
     g.add_node(
         3, state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a')]),
         split='os'
@@ -218,19 +242,19 @@ def graph_compound_feature():
         state=OrderedDict([('geo', 'UK'), ('site_id', 2), ('placement_id', 'a'), ('os', 'windows')])
     )
     g.add_node(
-        10, is_default_leaf=True, output=.1, state={}
+        10, is_default_leaf=True, output=.1, state=OrderedDict()
     )
     g.add_node(
-        11, is_default_leaf=True, output=.5, state={'geo': 'DE'}
+        11, is_default_leaf=True, output=.5, state=OrderedDict([('geo', 'DE')])
     )
     g.add_node(
-        12, is_default_leaf=True, output=.05, state={'geo': 'UK'}
+        12, is_default_leaf=True, output=.05, state=OrderedDict([('geo', 'UK')])
     )
     g.add_node(
-        13, is_default_leaf=True, output=.2, state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a'}
+        13, is_default_leaf=True, output=.2, state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a')])
     )
     g.add_node(
-        14, is_default_leaf=True, output=.3, state={'geo': 'UK', 'site_id': 1, 'placement_id': 'a'}
+        14, is_default_leaf=True, output=.3, state=OrderedDict([('geo', 'UK'), ('site_id', 1), ('placement_id', 'a')])
     )
 
     g.add_edge(0, 1, value='DE', type='assignment')
@@ -256,48 +280,48 @@ def graph_compound_feature():
 def graph_with_default_node():
     g = nx.DiGraph()
 
-    g.add_node(0, split='geo', state={})
-    g.add_node(1, split=('site_id', 'placement_id'), state={'geo': 'DE'})
-    g.add_node(2, is_default_node=True, split=('site_id', 'placement_id'), state={})
+    g.add_node(0, split='geo', state=OrderedDict())
+    g.add_node(1, split=('site_id', 'placement_id'), state=OrderedDict([('geo', 'DE')]))
+    g.add_node(2, is_default_node=True, split=('site_id', 'placement_id'), state=OrderedDict())
     g.add_node(
-        3, state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a'},
+        3, state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a')]),
         split='os'
     )
     g.add_node(
         4, is_leaf=True, output=.4,
-        state={'geo': 'DE', 'site_id': 1, 'placement_id': 'b'}
+        state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'b')])
     )
     g.add_node(
-        5, state={'site_id': 1, 'placement_id': 'a'},
+        5, state=OrderedDict([('site_id', 1), ('placement_id', 'a')]),
         split='os'
     )
     g.add_node(
         6, is_leaf=True, output=.6,
-        state={'site_id': 1, 'placement_id': 'b'}
+        state=OrderedDict([('site_id', 1), ('placement_id', 'b')])
     )
     g.add_node(
         7, is_leaf=True, output=.9,
-        state={'site_id': 2, 'placement_id': 'a'}
+        state=OrderedDict([('site_id', 2), ('placement_id', 'a')])
     )
     g.add_node(
         8, is_leaf=True, output=.2,
-        state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a', 'os': 'linux'}
+        state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a'), ('os', 'linux')])
     )
     g.add_node(
         9, is_leaf=True, output=.3,
-        state={'site_id': 1, 'placement_id': 'a', 'os': 'windows'}
+        state=OrderedDict([('site_id', 1), ('placement_id', 'a'), ('os', 'windows')])
     )
     g.add_node(
-        10, is_default_leaf=True, output=.5, state={'geo': 'DE'}
+        10, is_default_leaf=True, output=.5, state=OrderedDict([('geo', 'DE')])
     )
     g.add_node(
-        11, is_default_leaf=True, output=.05, state={'geo': 'UK'}
+        11, is_default_leaf=True, output=.05, state=OrderedDict([('geo', 'UK')])
     )
     g.add_node(
-        12, is_default_leaf=True, output=.2, state={'geo': 'DE', 'site_id': 1, 'placement_id': 'a'}
+        12, is_default_leaf=True, output=.2, state=OrderedDict([('geo', 'DE'), ('site_id', 1), ('placement_id', 'a')])
     )
     g.add_node(
-        13, is_default_leaf=True, output=.3, state={'site_id': 1, 'placement_id': 'a'}
+        13, is_default_leaf=True, output=.3, state=OrderedDict([('site_id', 1), ('placement_id', 'a')])
     )
 
     g.add_edge(0, 1, value='DE', type='assignment')
@@ -361,3 +385,142 @@ def small_graph():
                         'graph_with_default_node', 'small_graph'])
 def parameterized_graph(request):
     return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture
+def missing_values_graph():
+    g = nx.DiGraph()
+
+    g.add_node('root', split='segment', state=OrderedDict())
+    g.add_node(
+        'root_default',
+        is_default_leaf=True,
+        state=OrderedDict(),
+        output=.1
+    )
+    g.add_node('segment_1', split='segment.age', state=OrderedDict([('segment', 1)]))
+    g.add_node(
+        'segment_1_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', 1)]),
+        output=.1
+    )
+    g.add_node('segment_2', split='os', state=OrderedDict([('segment', 2)]))
+    g.add_node(
+        'segment_2_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', 2)]),
+        output=.1
+    )
+    g.add_node('segment_missing', split='segment.age', state=OrderedDict([('segment', None)]))
+    g.add_node(
+        'segment_missing_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_1_age_lower',
+        is_leaf=True,
+        state=OrderedDict([('segment', 1), ('segment.age', (-float('inf'), 10.))]),
+        output=.1
+    )
+    g.add_node(
+        'segment_1_age_upper',
+        is_leaf=True,
+        state=OrderedDict([('segment', 1), ('segment.age', (10., float('inf')))]),
+        output=.1
+    )
+    g.add_node(
+        'segment_2_os_known',
+        is_leaf=True,
+        state=OrderedDict([('segment', 2), ('os', ('linux', 'osx'))]),
+        output=.1
+    )
+    g.add_node(
+        'segment_2_os_unknown',
+        is_leaf=True,
+        state=OrderedDict([('segment', 2), ('os', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_missing_age_missing',
+        split='os',
+        state=OrderedDict([('segment', None), ('segment.age', None)])
+    )
+    g.add_node(
+        'segment_missing_age_missing_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', None), ('segment.age', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_missing_age_missing_os_known',
+        is_leaf=True,
+        state=OrderedDict([('segment', None), ('segment.age', None), ('os', ('linux',))]),
+        output=.1
+    )
+
+    g.add_edge('root', 'segment_1', value=1, type='assignment')
+    g.add_edge('root', 'segment_2', value=2, type='assignment')
+    g.add_edge('root', 'segment_missing', value=None, type='assignment')
+    g.add_edge('root', 'root_default')
+
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_lower',
+        value=(-float('inf'), 10.),
+        type='range'
+    )
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_upper',
+        value=(10., float('inf')),
+        type='range'
+    )
+    g.add_edge(
+        'segment_1',
+        'segment_1_default'
+    )
+
+    g.add_edge(
+        'segment_2',
+        'segment_2_os_known',
+        value=('linux', 'osx'),
+        type='membership'
+    )
+    g.add_edge(
+        'segment_2',
+        'segment_2_os_unknown',
+        value=None,
+        type='membership'
+    )
+    g.add_edge(
+        'segment_2',
+        'segment_2_default'
+    )
+
+    g.add_edge(
+        'segment_missing',
+        'segment_missing_age_missing',
+        value=None,
+        type='range'
+    )
+    g.add_edge(
+        'segment_missing',
+        'segment_missing_default'
+    )
+
+    g.add_edge(
+        'segment_missing_age_missing',
+        'segment_missing_age_missing_os_known',
+        value=('linux',),
+        type='membership'
+    )
+
+    g.add_edge(
+        'segment_missing_age_missing',
+        'segment_missing_age_missing_default'
+    )
+
+    return g

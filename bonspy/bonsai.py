@@ -13,7 +13,7 @@ from functools import cmp_to_key
 import networkx as nx
 
 from bonspy.features import compound_features, get_validated
-from bonspy.utils import compare_vectors
+from bonspy.utils import compare_vectors, ConstantDict
 
 try:
     basestring
@@ -51,6 +51,8 @@ class BonsaiTree(nx.DiGraph):
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
             self.feature_value_order = feature_value_order or {}
+            self._transform_splits()
+            self._remove_missing_compound_features()
             self._validate_feature_values()
             self._assign_indent()
             self._assign_condition()
@@ -63,6 +65,96 @@ class BonsaiTree(nx.DiGraph):
     @property
     def bonsai_encoded(self):
         return base64.b64encode(self.bonsai.encode('ascii')).decode()
+
+    def _transform_splits(self):
+        root_id = self._get_root()
+
+        for node_id in self.bfs_nodes(root_id):
+            try:
+                split = self.node[node_id]['split']
+            except KeyError:
+                continue
+
+            if not isinstance(split, dict):
+                self.node[node_id]['split'] = ConstantDict(split)
+
+    def _remove_missing_compound_features(self):
+        root_id = self._get_root()
+
+        for node_id in self.bfs_nodes(root_id):
+            try:
+                feature = next(reversed(self.node[node_id]['state']))
+            except StopIteration:
+                continue  # node_id is root_id
+
+            value = self.node[node_id]['state'][feature]
+
+            is_compound_attribute = self._is_compound_attribute(feature)
+
+            if is_compound_attribute and value is None:
+                self._splice_out_node(node_id, feature)
+
+        self._remove_disconnected_nodes()
+
+    def bfs_nodes(self, source):
+        queue = deque([source])
+
+        while queue:
+            node_id = queue.popleft()
+            child_ids = self.successors_iter(node_id)
+            queue.extend(child_ids)
+
+            yield node_id
+
+    def _is_compound_attribute(self, feature):
+        compound_feature = feature.split('.')
+        if len(compound_feature) < 2:
+            return False
+        compound_feature = compound_feature[0]
+
+        if compound_feature in compound_features:
+            return True
+
+    def _splice_out_node(self, source, feature):
+        self._remove_feature_from_state(source, feature)
+        self._skip_node(source)
+
+    def _remove_feature_from_state(self, source, feature):
+        for node_id in self.bfs_nodes(source):
+            del self.node[node_id]['state'][feature]
+
+    def _skip_node(self, node_id):
+        parent_id = next(iter(self.predecessors_iter(node_id)))
+
+        for _, child_id, edge_data in self.edges(nbunch=(node_id,), data=True):
+            if self.node[child_id].get('is_default_leaf'):
+                continue
+            else:
+                self.add_edge(parent_id, child_id, attr_dict=edge_data)
+                self.remove_edge(node_id, child_id)
+
+        self._skip_node_update_split(parent_id, node_id)
+        self.remove_edge(parent_id, node_id)
+        self.remove_node(node_id)
+
+    def _skip_node_update_split(self, parent_id, node_id):
+        del self.node[parent_id]['split'][node_id]
+
+        node_split = self.node[node_id]['split']
+        self.node[parent_id]['split'].update(node_split)
+
+    def _remove_disconnected_nodes(self):
+        node_ids = self._get_disconnected_nodes()
+
+        while node_ids:
+            self.remove_nodes_from(node_ids)
+
+            node_ids = self._get_disconnected_nodes()
+
+    def _get_disconnected_nodes(self):
+        node_ids = [n for n in self.nodes_iter() if not self.successors(n) and not self.predecessors(n)]
+
+        return node_ids
 
     def _validate_feature_values(self):
         self._validate_node_states()
@@ -200,7 +292,7 @@ class BonsaiTree(nx.DiGraph):
 
             type_ = self.edge[parent][child].get('type')
 
-            if type_ == 'range' and isinstance(self.node[parent]['split'], basestring):
+            if type_ == 'range' and len(set(self.node[parent]['split'].values())) == 1:
                 feature = self._get_feature(parent, child, state_node=parent)
 
                 header = 'switch {}:'.format(feature)  # appropriate indentation added later
@@ -313,7 +405,7 @@ class BonsaiTree(nx.DiGraph):
 
         pre_out = ''
 
-        if type_ == 'range' and conditional == 'if' and isinstance(self.node[parent]['split'], basestring):
+        if type_ == 'range' and conditional == 'if' and len(set(self.node[parent]['split'].values())) == 1:
             pre_out = self.node[parent]['switch_header'] + '\n'
 
         return pre_out
@@ -390,6 +482,9 @@ class BonsaiTree(nx.DiGraph):
 
     @staticmethod
     def _get_switch_header_range_statement(indent, value):
+        if value is None:
+            return ''
+
         left_bound, right_bound = value
         try:
             left_bound = int(left_bound)
@@ -416,48 +511,60 @@ class BonsaiTree(nx.DiGraph):
         return out
 
     def _get_if_conditional(self, value, type_, feature):
-        if type_ == 'range':
-            out = self._get_range_statement(value, feature)
-        elif type_ == 'membership':
-            try:
-                value = tuple(value)
-                if isinstance(value[0], basestring):
-                    value = '(\"{}\")'.format('\",\"'.join(value))
-                out = '{feature} in {value}'.format(
-                    feature=feature,
-                    value=value
-                )
-            except TypeError:
-                out = '{feature} absent'.format(feature=feature)
-        elif type_ == 'assignment':
-            if value is not None:
-                comparison = '='
-                value = '"{}"'.format(value) if not self._is_numerical(value) else value
 
-                if feature.split('.')[0] not in compound_features:
-                    out = '{feature}{comparison}{value}'.format(
-                        feature=feature,
-                        comparison=comparison,
-                        value=value
-                    )
-                elif feature in compound_features:
-                    out = '{feature}[{value}]'.format(
-                        feature=feature,
-                        value=value
-                    )
-                else:
-                    object_, attribute = feature.split('.')
-                    out = '{feature}[{value}].{attribute}'.format(
-                        feature=object_,
-                        value=value,
-                        attribute=attribute
-                    )
-            else:
-                out = '{feature} absent'.format(feature=feature)
-        else:
+        if type_ not in {'range', 'membership', 'assignment'}:
             raise ValueError(
                 'Unable to deduce conditional statement for type "{}".'.format(type_)
             )
+
+        if value is None:
+            out = self._get_if_conditional_missing_value(type_, feature)
+        else:
+            out = self._get_if_conditional_present_value(value, type_, feature)
+
+        return out
+
+    def _get_if_conditional_missing_value(self, type_, feature):
+        if feature == 'segment.age':
+            out = ''
+        else:
+            out = '{feature} absent'.format(feature=feature)
+
+        return out
+
+    def _get_if_conditional_present_value(self, value, type_, feature):
+        if type_ == 'range':
+            out = self._get_range_statement(value, feature)
+        elif type_ == 'membership':
+            value = tuple(value)
+            if isinstance(value[0], basestring):
+                value = '(\"{}\")'.format('\",\"'.join(value))
+            out = '{feature} in {value}'.format(
+                feature=feature,
+                value=value
+            )
+        elif type_ == 'assignment':
+            comparison = '='
+            value = '"{}"'.format(value) if not self._is_numerical(value) else value
+
+            if feature.split('.')[0] not in compound_features:
+                out = '{feature}{comparison}{value}'.format(
+                    feature=feature,
+                    comparison=comparison,
+                    value=value
+                )
+            elif feature in compound_features:
+                out = '{feature}[{value}]'.format(
+                    feature=feature,
+                    value=value
+                )
+            else:
+                object_, attribute = feature.split('.')
+                out = '{feature}[{value}].{attribute}'.format(
+                    feature=object_,
+                    value=value,
+                    attribute=attribute
+                )
 
         return out
 
@@ -491,7 +598,7 @@ class BonsaiTree(nx.DiGraph):
         type_ = self._get_sibling_type(parent, child)
         indent = self.node[parent]['indent']
 
-        conditional = 'default' if type_ == 'range' and isinstance(self.node[parent]['split'], basestring) else 'else'
+        conditional = 'default' if type_ == 'range' and len(set(self.node[parent]['split'].values())) == 1 else 'else'
 
         return '{indent}{conditional}:\n'.format(indent=indent, conditional=conditional)
 
