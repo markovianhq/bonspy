@@ -23,20 +23,27 @@ class ConstantDict(dict):
     def __init__(self, constant):
         super(ConstantDict, self).__init__()
         self.constant = constant
+        self.deleted_keys = set()
+
+    def update(self, E=None, **F):
+        super(ConstantDict, self).update(E, **F)
+
+        if type(E) is type(self):
+            self.constant = E.constant
 
     def values(self):
-        return [self.constant]
+        return [self.constant] + list(super(ConstantDict, self).values())
 
     def __delitem__(self, key):
         try:
             super(ConstantDict, self).__delitem__(key)
         except KeyError:
-            pass
+            self.deleted_keys.add(key)
 
     def __eq__(self, other):
         if type(other) is not type(self):
             return False
-        elif other.constant == self.constant:
+        elif other.constant == self.constant and super(ConstantDict, self).__eq__(other):
             return True
         else:
             return False
@@ -45,7 +52,10 @@ class ConstantDict(dict):
         try:
             return super(ConstantDict, self).__getitem__(item)
         except KeyError:
-            return self.constant
+            if item in self.deleted_keys:
+                raise
+            else:
+                return self.constant
 
     def __repr__(self):
-        return 'ConstantDict({})'.format(self.constant)
+        return 'ConstantDict({}, {})'.format(self.constant, super(ConstantDict, self).__repr__())
