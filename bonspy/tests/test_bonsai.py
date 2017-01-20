@@ -280,7 +280,13 @@ def test_get_range_statement():
 def test_missing_values(missing_values_graph):
     graph = missing_values_graph
 
-    tree = BonsaiTree(graph)
+    feature_value_order = {
+        'segment': {1: 0, 2: 1},
+        'os': {("linux", "osx"): 0, ("linux",): 1},
+        'segment.age': {(-float('inf'), 10.): 0, (10., -float('inf')): 1}
+    }
+
+    tree = BonsaiTree(graph, feature_value_order=feature_value_order)
 
     assert re.sub(r'\W+', '', tree.bonsai) == re.sub(
         r'\W+', '', '''
