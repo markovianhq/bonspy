@@ -518,4 +518,9 @@ def missing_values_graph():
         type='membership'
     )
 
+    g.add_edge(
+        'segment_missing_age_missing',
+        'segment_missing_age_missing_default'
+    )
+
     return g
