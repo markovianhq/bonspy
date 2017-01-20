@@ -124,11 +124,11 @@ class BonsaiTree(nx.DiGraph):
     def _skip_node(self, node_id):
         parent_id = next(iter(self.predecessors_iter(node_id)))
 
-        for _, child_id, data in self.edges(nbunch=(node_id,), data=True):
-            if data.get('is_default_leaf'):
+        for _, child_id, edge_data in self.edges(nbunch=(node_id,), data=True):
+            if self.node[child_id].get('is_default_leaf'):
                 continue
             else:
-                self.add_edge(parent_id, child_id, attr_dict=data)
+                self.add_edge(parent_id, child_id, attr_dict=edge_data)
                 self.remove_edge(node_id, child_id)
 
         self._skip_node_update_split(parent_id, node_id)
