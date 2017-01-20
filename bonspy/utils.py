@@ -58,4 +58,4 @@ class ConstantDict(dict):
                 return self.constant
 
     def __repr__(self):
-        return 'ConstantDict({}, {})'.format(self.constant, super(ConstantDict, self).__repr__())
+        return 'ConstantDict({}, {})'.format(self.constant.__repr__(), super(ConstantDict, self).__repr__())
