@@ -46,3 +46,6 @@ class ConstantDict(dict):
             return super(ConstantDict, self).__getitem__(item)
         except KeyError:
             return self.constant
+
+    def __repr__(self):
+        return 'ConstantDict({})'.format(self.constant)
