@@ -135,6 +135,7 @@ class BonsaiTree(nx.DiGraph):
 
         self._skip_node_update_split(parent_id, node_id)
         self.remove_edge(parent_id, node_id)
+        self.remove_node(node_id)
 
     def _skip_node_update_split(self, parent_id, node_id):
         del self.node[parent_id]['split'][node_id]
