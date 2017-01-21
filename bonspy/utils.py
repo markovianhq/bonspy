@@ -17,3 +17,7 @@ def _compare(x, y):
         return 1
     else:
         return 0
+
+
+def is_absent_value(value):
+    return value in (None, '', (), [])
