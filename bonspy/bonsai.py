@@ -528,10 +528,7 @@ class BonsaiTree(nx.DiGraph):
         return out
 
     def _get_if_conditional_missing_value(self, type_, feature):
-        if feature == 'segment.age':
-            out = ''
-        else:
-            out = '{feature} absent'.format(feature=feature)
+        out = '{feature} absent'.format(feature=feature)
 
         return out
 
