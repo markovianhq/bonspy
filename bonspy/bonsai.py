@@ -7,13 +7,13 @@ from __future__ import (
 
 import base64
 
-from collections import deque
+from collections import deque, OrderedDict
 from functools import cmp_to_key
 
 import networkx as nx
 
 from bonspy.features import compound_features, get_validated
-from bonspy.utils import compare_vectors, ConstantDict
+from bonspy.utils import compare_vectors
 
 try:
     basestring
@@ -76,7 +76,10 @@ class BonsaiTree(nx.DiGraph):
                 continue
 
             if not isinstance(split, dict):
-                self.node[node_id]['split'] = ConstantDict(split)
+                self.node[node_id]['split'] = OrderedDict()
+
+                for child_id in self.successors_iter(node_id):
+                    self.node[node_id]['split'][child_id] = split
 
     def _remove_missing_compound_features(self):
         root_id = self._get_root()

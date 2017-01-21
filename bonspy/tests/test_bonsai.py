@@ -10,13 +10,13 @@ import pytest
 import re
 
 from bonspy import BonsaiTree
-from bonspy.utils import ConstantDict
 
 
 def test_switch_header(graph):
     tree = BonsaiTree(graph)
     text = tree.bonsai.replace('\t', '').split('\n')
-    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == ConstantDict('segment.age')]
+    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') is not None and
+                           set(d.get('split').values()) == {'segment.age'}]
 
     assert len(switch_header_nodes) == 1
     assert all([d.get('switch_header') is not None for d in switch_header_nodes])
