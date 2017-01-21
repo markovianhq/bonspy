@@ -305,11 +305,8 @@ def test_missing_values(missing_values_graph):
                 0.1000
             else:
                 0.1000
-        elif segment absent:
-            if os in ("linux"):
-                0.1000
-            else:
-                0.1000
+        elif os in ("linux"):
+            0.1000
         else:
             0.1000
     ''')

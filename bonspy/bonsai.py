@@ -110,12 +110,7 @@ class BonsaiTree(nx.DiGraph):
             yield node_id
 
     def _is_compound_attribute(self, feature):
-        compound_feature = feature.split('.')
-        if len(compound_feature) < 2:
-            return False
-        compound_feature = compound_feature[0]
-
-        if compound_feature in compound_features:
+        if feature in {'segment', 'segment.age'}:
             return True
 
     def _splice_out_node(self, source, feature):
