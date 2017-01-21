@@ -292,7 +292,7 @@ def test_missing_values(missing_values_graph):
         r'\W+', '', '''
         if segment[1]:
             switch segment[1].age:
-                case ( .. 10):
+                case (0 .. 10):
                     0.1000
                 case (10 .. ):
                     0.1000
