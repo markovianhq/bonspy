@@ -524,3 +524,77 @@ def missing_values_graph():
     )
 
     return g
+
+
+@pytest.fixture
+def negated_values_graph():
+    g = nx.DiGraph()
+
+    g.add_node('root', split=OrderedDict([
+        ('every_segment', ('segment', 'segment')),
+        ('negated_every_segment', ('segment', 'segment', 'segment')),
+        ('any_segment', ('segment', 'segment')),
+        ('negated_any_segment', ('segment', 'segment'))
+    ]), state=OrderedDict())
+
+    g.add_node(
+        'every_segment',
+        is_leaf=True,
+        output=0.1,
+        state=OrderedDict([(('segment', 'segment'), (1, 2))])
+    )
+
+    g.add_node(
+        'negated_every_segment',
+        is_leaf=True,
+        output=0.1,
+        state=OrderedDict([(('segment', 'segment', 'segment'), (1, 2, 3))])
+    )
+
+    g.add_node(
+        'any_segment',
+        is_leaf=True,
+        output=0.1,
+        state=OrderedDict([(('segment', 'segment'), (1, 2))])
+    )
+
+    g.add_node(
+        'negated_any_segment',
+        is_leaf=True,
+        output=0.1,
+        state=OrderedDict([(('segment', 'segment'), (1, 10))])
+    )
+
+    g.add_edge(
+        'root',
+        'every_segment',
+        value=(1, 2),
+        type=('assignment', 'assignment')
+    )
+
+    g.add_edge(
+        'root',
+        'negated_every_segment',
+        value=(1, 2, 3),
+        type=('assignment', 'assignment', 'assignment'),
+        is_negated=(False, True, False)
+    )
+
+    g.add_edge(
+        'root',
+        'any_segment',
+        value=(1, 2),
+        type=('assignment', 'assignment'),
+        join_statement='any'
+    )
+
+    g.add_edge(
+        'root',
+        'negated_any_segment',
+        value=(1, 10),
+        type=('assignment', 'assignment'),
+        join_statement='any',
+        is_negated=(False, True)
+    )
+
+    return g

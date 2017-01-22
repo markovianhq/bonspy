@@ -35,8 +35,6 @@ class BonsaiTree(nx.DiGraph):
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
 
     :param graph: (optional) NetworkX graph to be exported to Bonsai.
-    :param join_statements: (optional), Dictionary indicating how to join multidimensional features.
-        Defaults to `every` for all features.
     :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
         Splitting the parent node on more than one feature is indicated through its `split` attribute
         set to an OrderedDict object [(child id, feature the parent node is split on]).
@@ -46,7 +44,7 @@ class BonsaiTree(nx.DiGraph):
         of the form {feature: {feature value: order position}}.
     """
 
-    def __init__(self, graph=None, join_statements=None, feature_order=None, feature_value_order=None):
+    def __init__(self, graph=None, feature_order=None, feature_value_order=None):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
@@ -57,7 +55,6 @@ class BonsaiTree(nx.DiGraph):
             self._assign_indent()
             self._assign_condition()
             self._handle_switch_statements()
-            self.join_statements = join_statements or {}
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__()
@@ -415,18 +412,19 @@ class BonsaiTree(nx.DiGraph):
         conditional = self.node[child]['condition']
         feature = self._get_feature(parent, child, state_node=child)
         switch_header = self.node[parent].get('switch_header')
+        join_statement = self.edge[parent][child].get('join_statement', 'every')
+        is_negated = self._get_is_negated(parent, child, feature)
 
         if switch_header and type_ == 'range':
             out = self._get_switch_header_range_statement(indent, value)
         else:
             out = '{indent}{conditional}'
             if type_ is not None and all(isinstance(x, (list, tuple)) for x in (feature, type_)):
-                join_statement = self._get_join_statement(feature)
                 out += ' ' + join_statement + ' ' + ', '.join(
-                    self._get_if_conditional(v, t, f) for v, t, f in zip(value, type_, feature)
+                    self._get_if_conditional(v, t, f, i) for v, t, f, i in zip(value, type_, feature, is_negated)
                 )
             elif type_ is not None and not any(isinstance(x, (list, tuple)) for x in (feature, type_)):
-                out += ' ' + self._get_if_conditional(value, type_, feature)
+                out += ' ' + self._get_if_conditional(value, type_, feature, is_negated)
             elif type_ is None:
                 out += ''
             else:
@@ -442,9 +440,6 @@ class BonsaiTree(nx.DiGraph):
 
         return out
 
-    def _get_join_statement(self, feature):
-        return self.join_statements.get(feature, 'every')
-
     def _get_feature(self, parent, child, state_node):
         feature = self.node[parent].get('split')
         if isinstance(feature, dict):
@@ -455,6 +450,15 @@ class BonsaiTree(nx.DiGraph):
             return self._get_formatted_compound_feature(feature, state_node)
         else:
             return feature
+
+    def _get_is_negated(self, parent, child, feature):
+        try:
+            return self.edge[parent][child]['is_negated']
+        except KeyError:
+            if isinstance(feature, (list, tuple)):
+                return len(feature) * (False,)
+            else:
+                return False
 
     def _get_formatted_multidimensional_compound_feature(self, feature, state_node):
         attribute_indices = self._get_attribute_indices(feature)
@@ -508,7 +512,7 @@ class BonsaiTree(nx.DiGraph):
 
         return out
 
-    def _get_if_conditional(self, value, type_, feature):
+    def _get_if_conditional(self, value, type_, feature, is_negated):
 
         if type_ not in {'range', 'membership', 'assignment'}:
             raise ValueError(
@@ -519,6 +523,9 @@ class BonsaiTree(nx.DiGraph):
             out = self._get_if_conditional_missing_value(type_, feature)
         else:
             out = self._get_if_conditional_present_value(value, type_, feature)
+
+        if is_negated:
+            out = 'not {}'.format(out)
 
         return out
 
