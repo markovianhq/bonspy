@@ -541,28 +541,28 @@ def negated_values_graph():
         'every_segment',
         is_leaf=True,
         output=0.1,
-        state=OrderedDict([('segment', 1), ('segment', 2)])
+        state=OrderedDict([(('segment', 'segment'), (1, 2))])
     )
 
     g.add_node(
         'negated_every_segment',
         is_leaf=True,
         output=0.1,
-        state=OrderedDict([('segment', 1), ('segment', 2), ('segment', 3)])
+        state=OrderedDict([(('segment', 'segment', 'segment'), (1, 2, 3))])
     )
 
     g.add_node(
         'any_segment',
         is_leaf=True,
         output=0.1,
-        state=OrderedDict([('segment', 1), ('segment', 2)])
+        state=OrderedDict([(('segment', 'segment'), (1, 2))])
     )
 
     g.add_node(
         'negated_any_segment',
         is_leaf=True,
         output=0.1,
-        state=OrderedDict([('segment', 1), ('segment', 2)])
+        state=OrderedDict([(('segment', 'segment'), (1, 2))])
     )
 
     g.add_edge(
