@@ -10,13 +10,13 @@ import pytest
 import re
 
 from bonspy import BonsaiTree
-from bonspy.utils import ConstantDict
 
 
 def test_switch_header(graph):
     tree = BonsaiTree(graph)
     text = tree.bonsai.replace('\t', '').split('\n')
-    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') == ConstantDict('segment.age')]
+    switch_header_nodes = [d for _, d in tree.nodes_iter(data=True) if d.get('split') is not None and
+                           set(d.get('split').values()) == {'segment.age'}]
 
     assert len(switch_header_nodes) == 1
     assert all([d.get('switch_header') is not None for d in switch_header_nodes])
@@ -283,33 +283,36 @@ def test_missing_values(missing_values_graph):
     feature_value_order = {
         'segment': {1: 0, 2: 1},
         'os': {("linux", "osx"): 0, ("linux",): 1},
-        'segment.age': {(-float('inf'), 10.): 0, (10., -float('inf')): 1}
+        'segment.age': {(0, 10.): 0, (10., float('inf')): 1}
     }
 
-    tree = BonsaiTree(graph, feature_value_order=feature_value_order)
+    feature_order = {
+        'segment': 0,
+        'os': 1
+    }
 
-    assert re.sub(r'\W+', '', tree.bonsai) == re.sub(
-        r'\W+', '', '''
+    tree = BonsaiTree(graph, feature_order=feature_order, feature_value_order=feature_value_order)
+
+    expected_tree = '''
         if segment[1]:
-            switch segment[1].age:
-                case ( .. 10):
-                    0.1000
-                case (10 .. ):
-                    0.1000
-                default:
-                    0.1000
+        \tswitch segment[1].age:
+        \t\tcase (0 .. 10):
+        \t\t\t0.1000
+        \t\tcase (10 .. ):
+        \t\t\t0.1000
+        \t\tdefault:
+        \t\t\t0.1000
         elif segment[2]:
-            if os in ("linux","osx"):
-                0.1000
-            elif os absent:
-                0.1000
-            else:
-                0.1000
-        elif segment absent:
-            if os in ("linux"):
-                0.1000
-            else:
-                0.1000
+        \tif os in ("linux","osx"):
+        \t\t0.1000
+        \telif os absent:
+        \t\t0.1000
+        \telse:
+        \t\t0.1000
+        elif os in ("linux"):
+        \t0.1000
         else:
-            0.1000
-    ''')
+        \t0.1000
+    '''.replace(8*' ', '').strip().lstrip('\n') + '\n'
+
+    assert tree.bonsai == expected_tree

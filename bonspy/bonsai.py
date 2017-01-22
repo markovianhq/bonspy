@@ -7,13 +7,13 @@ from __future__ import (
 
 import base64
 
-from collections import deque
+from collections import deque, OrderedDict
 from functools import cmp_to_key
 
 import networkx as nx
 
 from bonspy.features import compound_features, get_validated
-from bonspy.utils import compare_vectors, ConstantDict
+from bonspy.utils import compare_vectors, is_absent_value
 
 try:
     basestring
@@ -76,7 +76,10 @@ class BonsaiTree(nx.DiGraph):
                 continue
 
             if not isinstance(split, dict):
-                self.node[node_id]['split'] = ConstantDict(split)
+                self.node[node_id]['split'] = OrderedDict()
+
+                for child_id in self.successors_iter(node_id):
+                    self.node[node_id]['split'][child_id] = split
 
     def _remove_missing_compound_features(self):
         root_id = self._get_root()
@@ -107,12 +110,7 @@ class BonsaiTree(nx.DiGraph):
             yield node_id
 
     def _is_compound_attribute(self, feature):
-        compound_feature = feature.split('.')
-        if len(compound_feature) < 2:
-            return False
-        compound_feature = compound_feature[0]
-
-        if compound_feature in compound_features:
+        if feature in {'segment', 'segment.age'}:
             return True
 
     def _splice_out_node(self, source, feature):
@@ -517,7 +515,7 @@ class BonsaiTree(nx.DiGraph):
                 'Unable to deduce conditional statement for type "{}".'.format(type_)
             )
 
-        if value is None:
+        if is_absent_value(value):
             out = self._get_if_conditional_missing_value(type_, feature)
         else:
             out = self._get_if_conditional_present_value(value, type_, feature)
@@ -525,10 +523,7 @@ class BonsaiTree(nx.DiGraph):
         return out
 
     def _get_if_conditional_missing_value(self, type_, feature):
-        if feature == 'segment.age':
-            out = ''
-        else:
-            out = '{feature} absent'.format(feature=feature)
+        out = '{feature} absent'.format(feature=feature)
 
         return out
 
