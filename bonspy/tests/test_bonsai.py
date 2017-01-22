@@ -316,3 +316,22 @@ def test_missing_values(missing_values_graph):
     '''.replace(8*' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree
+
+
+def test_negated_values(negated_values_graph):
+    graph = negated_values_graph
+
+    tree = BonsaiTree(graph)
+
+    expected_tree = '''
+        if every segment[1], segment[2]:
+        \t0.1000
+        elif any not segment[1], not segment[2], not segment[3]:
+        \t0.1000
+        elif any segment[1], segment[2]:
+        \t0.1000
+        else every not segment[1], not segment[2]:
+        \t0.1000
+    '''.replace(8*' ', '').strip().lstrip('\n') + '\n'
+
+    assert tree.bonsai == expected_tree
