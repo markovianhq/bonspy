@@ -323,15 +323,11 @@ def test_negated_values(negated_values_graph):
 
     tree = BonsaiTree(graph)
 
-    expected_tree = '''
-        if every segment[1], segment[2]:
-        \t0.1000
-        elif every segment[1], not segment[2], segment[3]:
-        \t0.1000
-        elif any segment[1], segment[2]:
-        \t0.1000
-        else any segment[1], not segment[2]:
-        \t0.1000
-    '''.replace(8*' ', '').strip().lstrip('\n') + '\n'
+    expected_conditions = [
+        'every segment[1], segment[2]',
+        'every segment[1], not segment[2], segment[3]',
+        'any segment[1], segment[2]',
+        'any segment[1], not segment[2]'
+    ]
 
-    assert tree.bonsai == expected_tree
+    assert all([e in tree.bonsai for e in expected_conditions])
