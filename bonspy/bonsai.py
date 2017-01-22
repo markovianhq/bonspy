@@ -13,7 +13,7 @@ from functools import cmp_to_key
 import networkx as nx
 
 from bonspy.features import compound_features, get_validated
-from bonspy.utils import compare_vectors
+from bonspy.utils import compare_vectors, is_absent_value
 
 try:
     basestring
@@ -515,7 +515,7 @@ class BonsaiTree(nx.DiGraph):
                 'Unable to deduce conditional statement for type "{}".'.format(type_)
             )
 
-        if value is None:
+        if is_absent_value(value):
             out = self._get_if_conditional_missing_value(type_, feature)
         else:
             out = self._get_if_conditional_present_value(value, type_, feature)
