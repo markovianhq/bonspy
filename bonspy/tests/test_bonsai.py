@@ -288,25 +288,26 @@ def test_missing_values(missing_values_graph):
 
     tree = BonsaiTree(graph, feature_value_order=feature_value_order)
 
-    assert re.sub(r'\W+', '', tree.bonsai) == re.sub(
-        r'\W+', '', '''
+    expected_tree = '''
         if segment[1]:
-            switch segment[1].age:
-                case (0 .. 10):
-                    0.1000
-                case (10 .. ):
-                    0.1000
-                default:
-                    0.1000
+        \tswitch segment[1].age:
+        \t\tcase (0 .. 10):
+        \t\t\t0.1000
+        \t\tcase (10 .. ):
+        \t\t\t0.1000
+        \t\tdefault:
+        \t\t\t0.1000
         elif segment[2]:
-            if os in ("linux","osx"):
-                0.1000
-            elif os absent:
-                0.1000
-            else:
-                0.1000
+        \tif os in ("linux","osx"):
+        \t\t0.1000
+        \telif os absent:
+        \t\t0.1000
+        \telse:
+        \t\t0.1000
         elif os in ("linux"):
-            0.1000
+        \t0.1000
         else:
-            0.1000
-    ''')
+        \t0.1000
+    '''.replace(8*' ', '').strip().lstrip('\n') + '\n'
+
+    assert tree.bonsai == expected_tree
