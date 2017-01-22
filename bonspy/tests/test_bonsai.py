@@ -321,7 +321,16 @@ def test_missing_values(missing_values_graph):
 def test_negated_values(negated_values_graph):
     graph = negated_values_graph
 
-    tree = BonsaiTree(graph, feature_value_order={('segment', 'segment'): {(1, 10): 0}})
+    tree = BonsaiTree(
+        graph,
+        feature_order={
+            ('segment', 'segment', 'segment'): 1,
+            ('segment', 'segment'): 0
+        },
+        feature_value_order={
+            ('segment', 'segment'): {(1, 10): 0, (1, 2): 1}
+        }
+    )
 
     expected_conditions = [
         'every segment[1], segment[2]',
