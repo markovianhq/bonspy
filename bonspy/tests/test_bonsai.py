@@ -321,13 +321,16 @@ def test_missing_values(missing_values_graph):
 def test_negated_values(negated_values_graph):
     graph = negated_values_graph
 
-    tree = BonsaiTree(graph)
+    tree = BonsaiTree(graph, feature_value_order={('segment', 'segment'): {(1, 10): 0}})
 
     expected_conditions = [
         'every segment[1], segment[2]',
         'every segment[1], not segment[2], segment[3]',
         'any segment[1], segment[2]',
-        'any segment[1], not segment[2]'
+        'any segment[1], not segment[10]'
     ]
 
     assert all([e in tree.bonsai for e in expected_conditions])
+
+    indexes = [tree.bonsai.index(e) for e in expected_conditions]
+    assert tree.bonsai.index('any segment[1], not segment[10]') == min(indexes)
