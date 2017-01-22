@@ -286,7 +286,12 @@ def test_missing_values(missing_values_graph):
         'segment.age': {(-float('inf'), 10.): 0, (10., -float('inf')): 1}
     }
 
-    tree = BonsaiTree(graph, feature_value_order=feature_value_order)
+    feature_order = {
+        'segment': 0,
+        'os': 1
+    }
+
+    tree = BonsaiTree(graph, feature_order=feature_order, feature_value_order=feature_value_order)
 
     expected_tree = '''
         if segment[1]:
