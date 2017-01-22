@@ -577,7 +577,7 @@ def negated_values_graph():
         'negated_every_segment',
         value=(1, 2, 3),
         type=('assignment', 'assignment', 'assignment'),
-        is_negated=True
+        is_negated=(False, True, False)
     )
 
     g.add_edge(
@@ -594,7 +594,7 @@ def negated_values_graph():
         value=(1, 2),
         type=('assignment', 'assignment'),
         join_statement='any',
-        is_negated=True
+        is_negated=(False, True)
     )
 
     return g

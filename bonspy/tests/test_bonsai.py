@@ -326,11 +326,11 @@ def test_negated_values(negated_values_graph):
     expected_tree = '''
         if every segment[1], segment[2]:
         \t0.1000
-        elif any not segment[1], not segment[2], not segment[3]:
+        elif every segment[1], not segment[2], segment[3]:
         \t0.1000
         elif any segment[1], segment[2]:
         \t0.1000
-        else every not segment[1], not segment[2]:
+        else any segment[1], not segment[2]:
         \t0.1000
     '''.replace(8*' ', '').strip().lstrip('\n') + '\n'
 
