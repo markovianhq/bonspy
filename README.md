@@ -22,6 +22,8 @@ straightforward to check your bidding tree for syntactical errors and upload it 
 This package was developed and tested on Python 3.5.
 However, the examples below have been tested successfully in Python 2.7.
 
+Versions 0.9.2 and higher will no longer support Python 2.7.
+
 ## Installation
 
 ### Installation as regular library
