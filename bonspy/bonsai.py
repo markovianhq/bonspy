@@ -489,11 +489,13 @@ class BonsaiTree(nx.DiGraph):
 
         left_bound, right_bound = value
         try:
-            left_bound = int(left_bound)
+            left_bound = round(left_bound, 4)
+            _ = int(left_bound)
         except (TypeError, OverflowError):
             left_bound = ''
         try:
-            right_bound = int(right_bound)
+            right_bound = round(right_bound, 4)
+            _ = int(right_bound)
         except (TypeError, OverflowError):
             right_bound = ''
 
@@ -574,18 +576,18 @@ class BonsaiTree(nx.DiGraph):
         left_bound, right_bound = value
 
         if self._is_finite(left_bound) and self._is_finite(right_bound):
-            left_bound = int(left_bound)
-            right_bound = int(right_bound)
+            left_bound = round(left_bound, 4)
+            right_bound = round(right_bound, 4)
             out = '{feature} range ({left_bound}, {right_bound})'.format(
                 feature=feature,
                 left_bound=left_bound,
                 right_bound=right_bound
             )
         elif not self._is_finite(left_bound) and self._is_finite(right_bound):
-            right_bound = int(right_bound)
+            right_bound = round(right_bound, 4)
             out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
         elif self._is_finite(left_bound) and not self._is_finite(right_bound):
-            left_bound = int(left_bound)
+            left_bound = round(left_bound, 4)
             out = '{feature} >= {left_bound}'.format(feature=feature, left_bound=left_bound)
         else:
             raise ValueError(

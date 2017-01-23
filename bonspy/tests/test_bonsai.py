@@ -258,23 +258,23 @@ def test_get_range_statement():
     bonsai = BonsaiTree()
     get_range_statement = bonsai._get_range_statement
     values_dict = {1: (None, 1),
-                   2: (1, None),
-                   3: (1, 2),
+                   2: (1.54389, None),
+                   3: (0.9, 2.1),
                    4: (None, None),
-                   5: (1, 1),
+                   5: (0.99999, 1.4),
                    6: (-float('inf'), 1),
-                   7: (1, float('inf'))
+                   7: (1.3, float('inf'))
                    }
     feature = 'some_feature'
 
     assert get_range_statement(values_dict[1], feature) == 'some_feature <= 1'
-    assert get_range_statement(values_dict[2], feature) == 'some_feature >= 1'
-    assert get_range_statement(values_dict[3], feature) == 'some_feature range (1, 2)'
+    assert get_range_statement(values_dict[2], feature) == 'some_feature >= 1.5439'
+    assert get_range_statement(values_dict[3], feature) == 'some_feature range (0.9, 2.1)'
     with pytest.raises(ValueError):
         get_range_statement(values_dict[4], feature)
-    assert get_range_statement(values_dict[5], feature) == 'some_feature range (1, 1)'
+    assert get_range_statement(values_dict[5], feature) == 'some_feature range (1.0, 1.4)'
     assert get_range_statement(values_dict[6], feature) == 'some_feature <= 1'
-    assert get_range_statement(values_dict[7], feature) == 'some_feature >= 1'
+    assert get_range_statement(values_dict[7], feature) == 'some_feature >= 1.3'
 
 
 def test_missing_values(missing_values_graph):
@@ -283,7 +283,7 @@ def test_missing_values(missing_values_graph):
     feature_value_order = {
         'segment': {1: 0, 2: 1},
         'os': {("linux", "osx"): 0, ("linux",): 1},
-        'segment.age': {(0, 10.): 0, (10., float('inf')): 1}
+        'segment.age': {(0, 10.3): 0, (10.2, float('inf')): 1}
     }
 
     feature_order = {
