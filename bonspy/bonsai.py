@@ -490,12 +490,12 @@ class BonsaiTree(nx.DiGraph):
         left_bound, right_bound = value
         try:
             left_bound = round(left_bound, 4)
-            _ = int(left_bound)
+            _ = int(left_bound)  # NOQA
         except (TypeError, OverflowError):
             left_bound = ''
         try:
             right_bound = round(right_bound, 4)
-            _ = int(right_bound)
+            _ = int(right_bound)  # NOQA
         except (TypeError, OverflowError):
             right_bound = ''
 

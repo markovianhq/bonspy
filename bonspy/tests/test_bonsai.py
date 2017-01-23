@@ -283,7 +283,7 @@ def test_missing_values(missing_values_graph):
     feature_value_order = {
         'segment': {1: 0, 2: 1},
         'os': {("linux", "osx"): 0, ("linux",): 1},
-        'segment.age': {(0, 10.3): 0, (10.2, float('inf')): 1}
+        'segment.age': {(0, 10): 0, (10, float('inf')): 1}
     }
 
     feature_order = {
@@ -313,7 +313,7 @@ def test_missing_values(missing_values_graph):
         \t0.1000
         else:
         \t0.1000
-    '''.replace(8*' ', '').strip().lstrip('\n') + '\n'
+    '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree
 
