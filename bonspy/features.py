@@ -21,6 +21,10 @@ CEILINGS = {
     'user_hour': 23
 }
 
+OPERATIONS = {
+    'domain': [lambda value: str.lstrip(value, 'www.')]
+}
+
 TYPES = {
     'segment': int,
     'segment.age': int,
@@ -57,6 +61,7 @@ def _get_valid_value(feature, value):
     value = _get_ceiling(feature, value)
     value = _get_floor(feature, value)
     value = _type_cast(feature, value)
+    value = _apply_operations(feature, value)
 
     return value
 
@@ -92,3 +97,15 @@ def _type_cast(feature, value):
     except OverflowError:
         # `value` is -inf or inf
         return value
+
+
+def _apply_operations(feature, value):
+    try:
+        operations = OPERATIONS[feature]
+    except KeyError:
+        return value
+
+    for operation in operations:
+        value = operation(value)
+
+    return value
