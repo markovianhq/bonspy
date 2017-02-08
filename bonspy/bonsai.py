@@ -344,7 +344,7 @@ class BonsaiTree(nx.DiGraph):
         try:
             out_indent = self.node[node]['indent']
             out_name = self.node[node]['leaf_name']
-            name_line = '{indent}leaf_name: {name}\n'.format(indent=out_indent, name=out_name)
+            name_line = '{indent}leaf_name: "{name}"\n'.format(indent=out_indent, name=out_name)
         except KeyError:
             name_line = ''  # leaf_name is optional
 
