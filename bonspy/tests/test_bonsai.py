@@ -291,7 +291,12 @@ def test_missing_values(missing_values_graph):
         'os': 1
     }
 
-    tree = BonsaiTree(graph, feature_order=feature_order, feature_value_order=feature_value_order)
+    tree = BonsaiTree(
+        graph,
+        feature_order=feature_order,
+        feature_value_order=feature_value_order,
+        absent_values={'segment': (1, 2)}
+    )
 
     expected_tree = '''
         if segment[1]:
@@ -309,8 +314,11 @@ def test_missing_values(missing_values_graph):
         \t\t0.1000
         \telse:
         \t\t0.1000
-        elif os in ("linux"):
-        \t0.1000
+        elif every not segment[1], not segment[2]:
+        \telif os in ("linux"):
+        \t\t0.1000
+        \telse:
+        \t\t0.1000
         else:
         \t0.1000
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
