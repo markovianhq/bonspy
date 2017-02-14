@@ -295,7 +295,7 @@ def test_missing_values(missing_values_graph):
         graph,
         feature_order=feature_order,
         feature_value_order=feature_value_order,
-        absent_values={'segment': (1, 2)}
+        absence_values={'segment': (1, 2)}
     )
 
     expected_tree = '''

@@ -42,16 +42,16 @@ class BonsaiTree(nx.DiGraph):
         Bonsai language output.
     :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
         of the form {feature: {feature value: order position}}.
-    :param absent_values: (optional), Dictionary feature name -> iterable of values whose communal absence
+    :param absence_values: (optional), Dictionary feature name -> iterable of values whose communal absence
         signals absence of the respective feature.
     """
 
-    def __init__(self, graph=None, feature_order=None, feature_value_order=None, absent_values=None):
+    def __init__(self, graph=None, feature_order=None, feature_value_order=None, absence_values=None):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
             self.feature_value_order = feature_value_order or {}
-            self.absent_values = absent_values or {}
+            self.absence_values = absence_values or {}
             self._transform_splits()
             self._replace_absent_values()
             self._remove_missing_compound_features()
@@ -93,24 +93,24 @@ class BonsaiTree(nx.DiGraph):
 
             value = self.node[child_id]['state'][feature]
 
-            if self.absent_values.get(feature) and value is None:
+            if self.absence_values.get(feature) and value is None:
                 self._replace_absent_value_split(parent_id, child_id, feature)
                 self._replace_absent_value_edge(parent_id, child_id, feature)
                 self._replace_absent_value_state(child_id, feature)
 
     def _replace_absent_value_split(self, parent_id, child_id, feature):
-        values = self.absent_values[feature]
+        values = self.absence_values[feature]
         self.node[parent_id]['split'][child_id] = tuple(feature for value in values)
 
     def _replace_absent_value_edge(self, parent_id, child_id, feature):
-        values = self.absent_values[feature]
+        values = self.absence_values[feature]
 
         self.edge[parent_id][child_id]['value'] = values
         self.edge[parent_id][child_id]['type'] = ['assignment' for value in values]
         self.edge[parent_id][child_id]['is_negated'] = [True for value in values]
 
     def _replace_absent_value_state(self, source, feature):
-        absent_values = self.absent_values[feature]
+        absent_values = self.absence_values[feature]
 
         for node_id in self.bfs_nodes(source):
             state = self.node[node_id]['state']
