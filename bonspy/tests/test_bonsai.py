@@ -315,7 +315,7 @@ def test_missing_values(missing_values_graph):
         \telse:
         \t\t0.1000
         elif every not segment[1], not segment[2]:
-        \telif os in ("linux"):
+        \tif os in ("linux"):
         \t\t0.1000
         \telse:
         \t\t0.1000
