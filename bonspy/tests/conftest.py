@@ -527,6 +527,87 @@ def missing_values_graph():
 
 
 @pytest.fixture
+def missing_values_graph_short():
+    g = nx.DiGraph()
+
+    g.add_node('root', split='segment', state=OrderedDict())
+    g.add_node(
+        'root_default',
+        is_default_leaf=True,
+        state=OrderedDict(),
+        output=.1
+    )
+    g.add_node('segment_1', split='segment.age', state=OrderedDict([('segment', 1)]))
+    g.add_node(
+        'segment_1_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', 1)]),
+        output=.1
+    )
+    g.add_node('segment_2', is_leaf=True, state=OrderedDict([('segment', 2)]), output=0.1)
+    g.add_node('segment_missing', split='segment.age', state=OrderedDict([('segment', None)]))
+    g.add_node(
+        'segment_missing_default',
+        is_default_leaf=True,
+        state=OrderedDict([('segment', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_1_age_lower',
+        is_leaf=True,
+        state=OrderedDict([('segment', 1), ('segment.age', (-float('inf'), 10.))]),
+        output=.1
+    )
+    g.add_node(
+        'segment_1_age_missing',
+        is_leaf=True,
+        state=OrderedDict([('segment', 1), ('segment.age', None)]),
+        output=.1
+    )
+    g.add_node(
+        'segment_missing_age_missing',
+        is_leaf=True,
+        state=OrderedDict([('segment', None), ('segment.age', None)]),
+        output=.1
+    )
+
+    g.add_edge('root', 'segment_1', value=1, type='assignment')
+    g.add_edge('root', 'segment_2', value=2, type='assignment')
+    g.add_edge('root', 'segment_missing', value=None, type='assignment')
+    g.add_edge('root', 'root_default')
+
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_lower',
+        value=(-float('inf'), 10.),
+        type='range'
+    )
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_missing',
+        value=None,
+        type='range'
+    )
+    g.add_edge(
+        'segment_1',
+        'segment_1_default'
+    )
+
+    g.add_edge(
+        'segment_missing',
+        'segment_missing_age_missing',
+        value=None,
+        type='range'
+    )
+    g.add_edge(
+        'segment_missing',
+        'segment_missing_default'
+    )
+
+    return g
+
+
+@pytest.fixture
 def negated_values_graph():
     g = nx.DiGraph()
 
