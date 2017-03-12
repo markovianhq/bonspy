@@ -221,10 +221,10 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_only_child_default_leaves(self):
         default_edges = ((p, c) for (p, c) in self.edges_iter() if self.node[c].get('is_default_leaf'))
-        only_child_default_leaves = [c for (p, c) in default_edges if self._is_only_child(p)]
+        only_child_default_leaves = (c for (p, c) in default_edges if self._has_only_one_child(p))
         return only_child_default_leaves
 
-    def _is_only_child(self, parent_id):
+    def _has_only_one_child(self, parent_id):
         return len(self.successors(parent_id)) == 1
 
     def _validate_feature_values(self):
