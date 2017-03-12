@@ -326,6 +326,43 @@ def test_missing_values(missing_values_graph):
     assert tree.bonsai == expected_tree
 
 
+def test_missing_values_short(missing_values_graph_short):
+    graph = missing_values_graph_short
+
+    feature_value_order = {
+        'segment': {1: 0, 2: 1},
+        'segment.age': {(0, 10): 0}
+    }
+
+    feature_order = {
+        'segment': 0
+    }
+
+    tree = BonsaiTree(
+        graph,
+        feature_order=feature_order,
+        feature_value_order=feature_value_order,
+        absence_values={'segment': (1, 2)}
+    )
+
+    expected_tree = '''
+        if segment[1]:
+        \tswitch segment[1].age:
+        \t\tcase (0 .. 10):
+        \t\t\t0.1000
+        \t\tdefault:
+        \t\t\t0.1000
+        elif segment[2]:
+        \t0.1000
+        elif every not segment[1], not segment[2]:
+        \t0.1000
+        else:
+        \t0.1000
+    '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
+
+    assert tree.bonsai == expected_tree
+
+
 def test_negated_values(negated_values_graph):
     graph = negated_values_graph
 

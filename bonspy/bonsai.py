@@ -136,9 +136,13 @@ class BonsaiTree(nx.DiGraph):
             is_compound_attribute = self._is_compound_attribute(feature)
 
             if is_compound_attribute and value is None:
-                self._splice_out_node(node_id, feature)
+                if self.node[node_id].get('is_leaf'):
+                    self.remove_node(node_id)
+                else:
+                    self._splice_out_node(node_id, feature)
 
         self._remove_disconnected_nodes()
+        self._prune_redundant_default_leaves()
 
     def bfs_nodes(self, source):
         queue = deque([source])
@@ -197,6 +201,32 @@ class BonsaiTree(nx.DiGraph):
 
         return node_ids
 
+    def _prune_redundant_default_leaves(self):
+        only_child_default_leaves = self._get_only_child_default_leaves()
+        queue = deque(only_child_default_leaves)
+
+        while queue:
+            node_id = queue.popleft()
+            parent_id = next(iter(self.predecessors_iter(node_id)))
+
+            if not self.node[parent_id].get('is_default_node'):
+                self.node[parent_id] = self.node[node_id]
+                del self.node[parent_id]['is_default_leaf']
+                self.node[parent_id]['is_leaf'] = True
+            else:
+                self.node[parent_id] = self.node[node_id]
+                queue.extend(parent_id)
+
+            self.remove_node(node_id)
+
+    def _get_only_child_default_leaves(self):
+        default_edges = ((p, c) for (p, c) in self.edges_iter() if self.node[c].get('is_default_leaf'))
+        only_child_default_leaves = (c for (p, c) in default_edges if self._has_only_one_child(p))
+        return only_child_default_leaves
+
+    def _has_only_one_child(self, parent_id):
+        return len(self.successors(parent_id)) == 1
+
     def _validate_feature_values(self):
         self._validate_node_states()
         self._validate_edge_values()
@@ -228,7 +258,7 @@ class BonsaiTree(nx.DiGraph):
 
         self.node[root]['indent'] = ''
 
-        while len(queue) > 0:
+        while queue:
             node = queue.popleft()
             indent = self.node[node]['indent']
 
@@ -298,7 +328,7 @@ class BonsaiTree(nx.DiGraph):
         root = self._get_root()
         queue = deque([root])
 
-        while len(queue) > 0:
+        while queue:
             node = queue.popleft()
 
             next_nodes = self.successors(node)
@@ -669,7 +699,7 @@ class BonsaiTree(nx.DiGraph):
         root = self._get_root()
         stack = deque(self._get_sorted_out_edges(root))
 
-        while len(stack) > 0:
+        while stack:
             parent, child = stack.popleft()
 
             next_edges = self._get_sorted_out_edges(child)
