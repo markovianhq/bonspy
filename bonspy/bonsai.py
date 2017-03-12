@@ -205,7 +205,7 @@ class BonsaiTree(nx.DiGraph):
         only_child_default_leaves = self._get_only_child_default_leaves()
         queue = deque(only_child_default_leaves)
 
-        while len(queue) > 0:
+        while queue:
             node_id = queue.popleft()
             parent_id = next(iter(self.predecessors_iter(node_id)))
 
@@ -258,7 +258,7 @@ class BonsaiTree(nx.DiGraph):
 
         self.node[root]['indent'] = ''
 
-        while len(queue) > 0:
+        while queue:
             node = queue.popleft()
             indent = self.node[node]['indent']
 
@@ -328,7 +328,7 @@ class BonsaiTree(nx.DiGraph):
         root = self._get_root()
         queue = deque([root])
 
-        while len(queue) > 0:
+        while queue:
             node = queue.popleft()
 
             next_nodes = self.successors(node)
@@ -699,7 +699,7 @@ class BonsaiTree(nx.DiGraph):
         root = self._get_root()
         stack = deque(self._get_sorted_out_edges(root))
 
-        while len(stack) > 0:
+        while stack:
             parent, child = stack.popleft()
 
             next_edges = self._get_sorted_out_edges(child)
