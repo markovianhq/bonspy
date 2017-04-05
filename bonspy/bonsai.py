@@ -451,10 +451,10 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_smart_leaf_output_compute_syntax(self, node):
         input_field = self.node[node]['input_field']
-        multiplier = self.node[node].get('multiplier', '_')
-        offset = self.node[node].get('offset', '_')
-        min_value = self.node[node].get('min_value', '_')
-        max_value = self.node[node].get('max_value', '_')
+        multiplier = self._get_compute_input(node, 'multiplier')
+        offset = self._get_compute_input(node, 'offset')
+        min_value = self._get_compute_input(node, 'min_value')
+        max_value = self._get_compute_input(node, 'max_value')
 
         return 'value: compute({input_field}, {multiplier}, {offset}, {min_value}, {max_value})'.format(
             input_field=input_field,
@@ -463,6 +463,14 @@ class BonsaiTree(nx.DiGraph):
             min_value=min_value,
             max_value=max_value
         )
+
+    def _get_compute_input(self, node, parameter):
+        node_dict = self.node[node]
+        try:
+            value = round(node_dict[parameter], 4)
+        except KeyError:
+            value = '_'
+        return value
 
     def _get_conditional_text(self, parent, child):
         pre_out = self._get_pre_out_statement(parent, child)
