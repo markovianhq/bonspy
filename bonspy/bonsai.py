@@ -465,8 +465,9 @@ class BonsaiTree(nx.DiGraph):
         )
 
     def _get_compute_input(self, node, parameter):
+        node_dict = self.node[node]
         try:
-            value = round(self.node[node][parameter], 4)
+            value = round(node_dict[parameter], 4)
         except KeyError:
             value = '_'
         return value
