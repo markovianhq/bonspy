@@ -54,6 +54,30 @@ def test_compound_feature_presence(graph):
             assert any(['segment[{id}]'.format(id=i) in row for i in [12345, 67890, 13579]])
 
 
+def test_multiple_compound_features(multiple_compound_features_graph):
+    tree = BonsaiTree(multiple_compound_features_graph)
+
+    expected_tree = '''
+        if advertiser[1]:
+        \tif segment[1]:
+        \t\tswitch segment[1].age:
+        \t\t\tcase (0 .. 10):
+        \t\t\t\tswitch advertiser[1].frequency:
+        \t\t\t\t\tcase (0 .. 10):
+        \t\t\t\t\t\t0.5000
+        \t\t\tcase (10 .. 20):
+        \t\t\t\t0.1000
+        \telse segment[2]:
+        \t\tswitch segment[2].age:
+        \t\t\tcase (0 .. 10):
+        \t\t\t\tswitch advertiser[1].frequency:
+        \t\t\t\t\tcase (10 .. 20):
+        \t\t\t\t\t\t0.6000
+    '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
+
+    assert tree.bonsai == expected_tree
+
+
 def test_two_range_features(graph_two_range_features):
     tree = BonsaiTree(graph_two_range_features)
 

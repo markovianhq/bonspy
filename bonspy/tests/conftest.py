@@ -679,3 +679,191 @@ def negated_values_graph():
     )
 
     return g
+
+
+@pytest.fixture
+def multiple_compound_features_graph():
+    g = nx.DiGraph()
+
+    g.add_node(
+        'root',
+        split=OrderedDict(
+            [
+                ('advertiser_1', 'advertiser')
+            ]
+        ),
+        state=OrderedDict([])
+    )
+
+    g.add_node(
+        'advertiser_1',
+        split=OrderedDict(
+            [
+                ('segment_1', 'segment'),
+                ('segment_2', 'segment')
+            ]
+        ),
+        state=OrderedDict([('advertiser', 1)])
+    )
+
+    g.add_node(
+        'segment_1',
+        split=OrderedDict(
+            [
+                ('segment_1_age_1', 'segment.age'),
+                ('segment_1_age_2', 'segment.age')
+            ]
+        ),
+        state=OrderedDict(
+            [
+                ('advertiser', 1),
+                ('segment', 1)
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_2',
+        split=OrderedDict(
+            [
+                ('segment_2_age_1', 'segment.age')
+            ]
+        ),
+        state=OrderedDict(
+            [
+                ('advertiser', 1),
+                ('segment', 2)
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_1_age_1',
+        split=OrderedDict(
+            [
+                ('segment_1_age_1_freq_1', 'advertiser.frequency')
+            ]
+        ),
+        state=OrderedDict(
+            [
+                ('advertiser', 1),
+                ('segment', 1),
+                ('segment.age', (0, 10))
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_1_age_2',
+        is_leaf=True,
+        output=0.1,
+        state=OrderedDict(
+            [
+                ('advertiser', 1),
+                ('segment', 1),
+                ('segment.age', (10, 20))
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_2_age_1',
+        split=OrderedDict(
+            [
+                ('segment_2_age_1_freq_2', 'advertiser.frequency')
+            ]
+        ),
+        state=OrderedDict(
+            [
+                ('advertiser', 1),
+                ('segment', 2),
+                ('segment.age', (0, 10))
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_1_age_1_freq_1',
+        is_leaf=True,
+        output=0.5,
+        state=OrderedDict(
+            [
+                ('advertiser', 1),
+                ('segment', 1),
+                ('segment.age', (0, 10)),
+                ('advertiser.frequency', (0, 10))
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_2_age_1_freq_2',
+        is_leaf=True,
+        output=0.6,
+        state=OrderedDict(
+            [
+                ('advertiser', 1),
+                ('segment', 2),
+                ('segment.age', (0, 10)),
+                ('advertiser.frequency', (10, 20))
+            ]
+        )
+    )
+
+    g.add_edge(
+        'root',
+        'advertiser_1',
+        value=1,
+        type='assignment'
+    )
+
+    g.add_edge(
+        'advertiser_1',
+        'segment_1',
+        value=1,
+        type='assignment'
+    )
+
+    g.add_edge(
+        'advertiser_1',
+        'segment_2',
+        value=2,
+        type='assignment'
+    )
+
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_1',
+        value=(0, 10),
+        type='range'
+    )
+
+    g.add_edge(
+        'segment_1',
+        'segment_1_age_2',
+        value=(10, 20),
+        type='range'
+    )
+
+    g.add_edge(
+        'segment_2',
+        'segment_2_age_1',
+        value=(0, 10),
+        type='range'
+    )
+
+    g.add_edge(
+        'segment_1_age_1',
+        'segment_1_age_1_freq_1',
+        value=(0, 10),
+        type='range'
+    )
+
+    g.add_edge(
+        'segment_2_age_1',
+        'segment_2_age_1_freq_2',
+        value=(10, 20),
+        type='range'
+    )
+
+    return g

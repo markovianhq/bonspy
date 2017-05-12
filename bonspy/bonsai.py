@@ -155,7 +155,7 @@ class BonsaiTree(nx.DiGraph):
             yield node_id
 
     def _is_compound_attribute(self, feature):
-        if feature in {'segment.age'}:
+        if '.' in feature:
             return True
         else:
             return False
