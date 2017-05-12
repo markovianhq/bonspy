@@ -55,7 +55,24 @@ def test_compound_feature_presence(graph):
 
 
 def test_multiple_compound_features(multiple_compound_features_graph):
-    tree = BonsaiTree(multiple_compound_features_graph)
+    feature_value_order = {
+        'segment': {1: 0, 2: 1},
+        'segment.age': {(0, 10): 0, (10, 20): 1},
+        'advertiser.frequency': {(0, 10): 0, (10, 20): 1}
+    }
+
+    feature_order = {
+        'advertiser': 0,
+        'segment': 1,
+        'segment.age': 2,
+        'advertiser.frequency': 3
+    }
+
+    tree = BonsaiTree(
+        multiple_compound_features_graph,
+        feature_order=feature_order,
+        feature_value_order=feature_value_order
+    )
 
     expected_tree = '''
         if advertiser[1]:
