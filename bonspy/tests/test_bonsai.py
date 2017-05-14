@@ -58,7 +58,7 @@ def test_multiple_compound_features(multiple_compound_features_graph):
     feature_value_order = {
         'segment': {1: 0, 2: 1},
         'segment.age': {(0, 10): 0, (10, 20): 1},
-        'advertiser.lifetime_frequency': {(5, 10): 0, (None, 4): 1, (11, 11): 2, (12, None): 3}
+        'advertiser.lifetime_frequency': {(5, 10): 0, (None, 4): 1, (11, 11): 2, (12, None): 3, (0, 10): 4}
     }
 
     feature_order = {
@@ -93,6 +93,8 @@ def test_multiple_compound_features(multiple_compound_features_graph):
         \t\t\t\t0.6000
         \t\t\telif advertiser[1].lifetime_frequency >= 12:
         \t\t\t\t0.7000
+        \t\t\telif every advertiser[1].lifetime_frequency >= 0, advertiser[1].lifetime_frequency <= 10:
+        \t\t\t\t0.9000
         \t\t\telse user_day range (0, 3):
         \t\t\t\t1.0000
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'

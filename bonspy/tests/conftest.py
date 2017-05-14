@@ -759,6 +759,7 @@ def multiple_compound_features_graph():
             [
                 ('segment_2_age_1_freq_2', 'advertiser.lifetime_frequency'),
                 ('segment_2_age_1_freq_3', 'advertiser.lifetime_frequency'),
+                ('segment_2_age_1_freq_4', 'advertiser.lifetime_frequency'),
                 ('segment_2_age_1_user_day', 'user_day')
             ]
         ),
@@ -818,6 +819,19 @@ def multiple_compound_features_graph():
                 ('segment', 2),
                 ('segment.age', (0, 10)),
                 ('advertiser.lifetime_frequency', (12, None))
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_2_age_1_freq_4',
+        is_leaf=True,
+        output=0.9,
+        state=OrderedDict(
+            [
+                ('segment', 2),
+                ('segment.age', (0, 10)),
+                ('advertiser.lifetime_frequency', (0, 10))
             ]
         )
     )
@@ -895,6 +909,13 @@ def multiple_compound_features_graph():
         'segment_2_age_1',
         'segment_2_age_1_freq_3',
         value=(12, None),
+        type='range'
+    )
+
+    g.add_edge(
+        'segment_2_age_1',
+        'segment_2_age_1_freq_4',
+        value=(0, 10),
         type='range'
     )
 
