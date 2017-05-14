@@ -756,7 +756,8 @@ def multiple_compound_features_graph():
         'segment_2_age_1',
         split=OrderedDict(
             [
-                ('segment_2_age_1_freq_2', 'advertiser.frequency')
+                ('segment_2_age_1_freq_2', 'advertiser.frequency'),
+                ('segment_2_age_1_freq_3', 'advertiser.frequency')
             ]
         ),
         state=OrderedDict(
@@ -788,7 +789,20 @@ def multiple_compound_features_graph():
             [
                 ('segment', 2),
                 ('segment.age', (0, 10)),
-                ('advertiser.frequency', (10, 20))
+                ('advertiser.frequency', (11, 11))
+            ]
+        )
+    )
+
+    g.add_node(
+        'segment_2_age_1_freq_3',
+        is_leaf=True,
+        output=0.7,
+        state=OrderedDict(
+            [
+                ('segment', 2),
+                ('segment.age', (0, 10)),
+                ('advertiser.frequency', (12, None))
             ]
         )
     )
@@ -838,7 +852,14 @@ def multiple_compound_features_graph():
     g.add_edge(
         'segment_2_age_1',
         'segment_2_age_1_freq_2',
-        value=(10, 20),
+        value=(11, 11),
+        type='range'
+    )
+
+    g.add_edge(
+        'segment_2_age_1',
+        'segment_2_age_1_freq_3',
+        value=(12, None),
         type='range'
     )
 

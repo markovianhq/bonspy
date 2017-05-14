@@ -58,7 +58,7 @@ def test_multiple_compound_features(multiple_compound_features_graph):
     feature_value_order = {
         'segment': {1: 0, 2: 1},
         'segment.age': {(0, 10): 0, (10, 20): 1},
-        'advertiser.frequency': {(0, 10): 0, (10, 20): 1}
+        'advertiser.frequency': {(0, 10): 0, (11, 11): 1, (12, None): 2}
     }
 
     feature_order = {
@@ -85,8 +85,10 @@ def test_multiple_compound_features(multiple_compound_features_graph):
         else segment[2]:
         \tswitch segment[2].age:
         \t\tcase (0 .. 10):
-        \t\t\tif every advertiser[1].frequency >= 10, advertiser[1].frequency <= 20:
+        \t\t\tif advertiser[1].frequency = 11:
         \t\t\t\t0.6000
+        \t\t\telse advertiser[1].frequency >= 12:
+        \t\t\t\t0.7000
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree
