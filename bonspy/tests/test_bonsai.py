@@ -62,7 +62,6 @@ def test_multiple_compound_features(multiple_compound_features_graph):
     }
 
     feature_order = {
-        'advertiser': 0,
         'segment': 1,
         'segment.age': 2,
         'advertiser.frequency': 3
@@ -71,25 +70,25 @@ def test_multiple_compound_features(multiple_compound_features_graph):
     tree = BonsaiTree(
         multiple_compound_features_graph,
         feature_order=feature_order,
-        feature_value_order=feature_value_order
+        feature_value_order=feature_value_order,
+        advertiser=1
     )
 
     expected_tree = '''
-        if advertiser[1]:
-        \tif segment[1]:
-        \t\tswitch segment[1].age:
-        \t\t\tcase (0 .. 10):
-        \t\t\t\tswitch advertiser[1].frequency:
-        \t\t\t\t\tcase (0 .. 10):
-        \t\t\t\t\t\t0.5000
-        \t\t\tcase (10 .. 20):
-        \t\t\t\t0.1000
-        \telse segment[2]:
-        \t\tswitch segment[2].age:
-        \t\t\tcase (0 .. 10):
-        \t\t\t\tswitch advertiser[1].frequency:
-        \t\t\t\t\tcase (10 .. 20):
-        \t\t\t\t\t\t0.6000
+        if segment[1]:
+        \tswitch segment[1].age:
+        \t\tcase (0 .. 10):
+        \t\t\tswitch advertiser[1].frequency:
+        \t\t\t\tcase (0 .. 10):
+        \t\t\t\t\t0.5000
+        \t\tcase (10 .. 20):
+        \t\t\t0.1000
+        else segment[2]:
+        \tswitch segment[2].age:
+        \t\tcase (0 .. 10):
+        \t\t\tswitch advertiser[1].frequency:
+        \t\t\t\tcase (10 .. 20):
+        \t\t\t\t\t0.6000
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree

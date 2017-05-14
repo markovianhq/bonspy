@@ -46,12 +46,14 @@ class BonsaiTree(nx.DiGraph):
         signals absence of the respective feature.
     """
 
-    def __init__(self, graph=None, feature_order=None, feature_value_order=None, absence_values=None):
+    def __init__(self, graph=None, feature_order=None, feature_value_order=None, absence_values=None, **kwargs):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = feature_order or {}
             self.feature_value_order = feature_value_order or {}
             self.absence_values = absence_values or {}
+            for key, value in kwargs.items():
+                setattr(self, key, value)
             self._transform_splits()
             self._replace_absent_values()
             self._remove_missing_compound_features()
@@ -61,7 +63,9 @@ class BonsaiTree(nx.DiGraph):
             self._handle_switch_statements()
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
-            super(BonsaiTree, self).__init__()
+            super(BonsaiTree, self).__init__(**kwargs)
+            for key, value in kwargs.items():
+                setattr(self, key, value)
 
     @property
     def bonsai_encoded(self):
@@ -558,9 +562,13 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_formatted_compound_feature(self, feature, state_node):
         object_, attribute = feature.split('.')
+        try:
+            value = self.node[state_node]['state'][object_]
+        except KeyError:
+            value = self.__getattribute__(object_)
         feature = '{feature}[{value}].{attribute}'.format(
             feature=object_,
-            value=self.node[state_node]['state'][object_],
+            value=value,
             attribute=attribute
         )
 

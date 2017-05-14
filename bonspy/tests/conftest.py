@@ -689,21 +689,11 @@ def multiple_compound_features_graph():
         'root',
         split=OrderedDict(
             [
-                ('advertiser_1', 'advertiser')
-            ]
-        ),
-        state=OrderedDict([])
-    )
-
-    g.add_node(
-        'advertiser_1',
-        split=OrderedDict(
-            [
                 ('segment_1', 'segment'),
                 ('segment_2', 'segment')
             ]
         ),
-        state=OrderedDict([('advertiser', 1)])
+        state=OrderedDict([])
     )
 
     g.add_node(
@@ -716,7 +706,6 @@ def multiple_compound_features_graph():
         ),
         state=OrderedDict(
             [
-                ('advertiser', 1),
                 ('segment', 1)
             ]
         )
@@ -731,7 +720,6 @@ def multiple_compound_features_graph():
         ),
         state=OrderedDict(
             [
-                ('advertiser', 1),
                 ('segment', 2)
             ]
         )
@@ -746,7 +734,6 @@ def multiple_compound_features_graph():
         ),
         state=OrderedDict(
             [
-                ('advertiser', 1),
                 ('segment', 1),
                 ('segment.age', (0, 10))
             ]
@@ -759,7 +746,6 @@ def multiple_compound_features_graph():
         output=0.1,
         state=OrderedDict(
             [
-                ('advertiser', 1),
                 ('segment', 1),
                 ('segment.age', (10, 20))
             ]
@@ -775,7 +761,6 @@ def multiple_compound_features_graph():
         ),
         state=OrderedDict(
             [
-                ('advertiser', 1),
                 ('segment', 2),
                 ('segment.age', (0, 10))
             ]
@@ -788,7 +773,6 @@ def multiple_compound_features_graph():
         output=0.5,
         state=OrderedDict(
             [
-                ('advertiser', 1),
                 ('segment', 1),
                 ('segment.age', (0, 10)),
                 ('advertiser.frequency', (0, 10))
@@ -802,7 +786,6 @@ def multiple_compound_features_graph():
         output=0.6,
         state=OrderedDict(
             [
-                ('advertiser', 1),
                 ('segment', 2),
                 ('segment.age', (0, 10)),
                 ('advertiser.frequency', (10, 20))
@@ -812,20 +795,13 @@ def multiple_compound_features_graph():
 
     g.add_edge(
         'root',
-        'advertiser_1',
-        value=1,
-        type='assignment'
-    )
-
-    g.add_edge(
-        'advertiser_1',
         'segment_1',
         value=1,
         type='assignment'
     )
 
     g.add_edge(
-        'advertiser_1',
+        'root',
         'segment_2',
         value=2,
         type='assignment'
