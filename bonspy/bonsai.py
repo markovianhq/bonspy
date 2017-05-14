@@ -369,10 +369,9 @@ class BonsaiTree(nx.DiGraph):
 
             if type_ == 'range' and len(set(self.node[parent]['split'].values())) == 1:
                 feature = self._get_feature(parent, child, state_node=parent)
-                if '.' not in feature or 'segment' in feature:
-                    header = 'switch {}:'.format(feature)  # appropriate indentation added later
+                header = 'switch {}:'.format(feature)  # appropriate indentation added later
 
-                    self.node[parent]['switch_header'] = header
+                self.node[parent]['switch_header'] = header
 
     def _adapt_switch_indentation(self):
         switch_header_nodes = [n for n, d in self.nodes_iter(data=True) if d.get('switch_header')]

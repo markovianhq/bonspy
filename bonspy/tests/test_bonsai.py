@@ -58,13 +58,14 @@ def test_multiple_compound_features(multiple_compound_features_graph):
     feature_value_order = {
         'segment': {1: 0, 2: 1},
         'segment.age': {(0, 10): 0, (10, 20): 1},
-        'advertiser.frequency': {(0, 10): 0, (11, 11): 1, (12, None): 2}
+        'advertiser.lifetime_frequency': {(5, 10): 0, (None, 4): 1, (11, 11): 2, (12, None): 3}
     }
 
     feature_order = {
         'segment': 1,
         'segment.age': 2,
-        'advertiser.frequency': 3
+        'advertiser.lifetime_frequency': 3,
+        'user_day': 4
     }
 
     tree = BonsaiTree(
@@ -78,17 +79,22 @@ def test_multiple_compound_features(multiple_compound_features_graph):
         if segment[1]:
         \tswitch segment[1].age:
         \t\tcase (0 .. 10):
-        \t\t\tif every advertiser[1].frequency >= 0, advertiser[1].frequency <= 10:
-        \t\t\t\t0.5000
+        \t\t\tswitch advertiser[1].lifetime_frequency:
+        \t\t\t\tcase (5 .. 10):
+        \t\t\t\t\t0.5000
+        \t\t\t\tcase ( .. 4):
+        \t\t\t\t\t0.3000
         \t\tcase (10 .. 20):
         \t\t\t0.1000
         else segment[2]:
         \tswitch segment[2].age:
         \t\tcase (0 .. 10):
-        \t\t\tif advertiser[1].frequency = 11:
+        \t\t\tif advertiser[1].lifetime_frequency = 11:
         \t\t\t\t0.6000
-        \t\t\telse advertiser[1].frequency >= 12:
+        \t\t\telif advertiser[1].lifetime_frequency >= 12:
         \t\t\t\t0.7000
+        \t\t\telse user_day range (0, 3):
+        \t\t\t\t1.0000
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree
