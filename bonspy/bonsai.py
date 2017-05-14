@@ -369,6 +369,7 @@ class BonsaiTree(nx.DiGraph):
 
             if type_ == 'range' and len(set(self.node[parent]['split'].values())) == 1:
                 feature = self._get_feature(parent, child, state_node=parent)
+
                 header = 'switch {}:'.format(feature)  # appropriate indentation added later
 
                 self.node[parent]['switch_header'] = header
@@ -487,8 +488,7 @@ class BonsaiTree(nx.DiGraph):
 
         pre_out = ''
 
-        if type_ == 'range' and conditional == 'if' and len(set(self.node[parent]['split'].values())) == 1\
-                and self.node[parent].get('switch_header'):
+        if type_ == 'range' and conditional == 'if' and len(set(self.node[parent]['split'].values())) == 1:
             pre_out = self.node[parent]['switch_header'] + '\n'
 
         return pre_out
