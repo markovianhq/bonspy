@@ -78,17 +78,15 @@ def test_multiple_compound_features(multiple_compound_features_graph):
         if segment[1]:
         \tswitch segment[1].age:
         \t\tcase (0 .. 10):
-        \t\t\tswitch advertiser[1].frequency:
-        \t\t\t\tcase (0 .. 10):
-        \t\t\t\t\t0.5000
+        \t\t\tif every advertiser[1].frequency >= 0, advertiser[1].frequency <= 10:
+        \t\t\t\t0.5000
         \t\tcase (10 .. 20):
         \t\t\t0.1000
         else segment[2]:
         \tswitch segment[2].age:
         \t\tcase (0 .. 10):
-        \t\t\tswitch advertiser[1].frequency:
-        \t\t\t\tcase (10 .. 20):
-        \t\t\t\t\t0.6000
+        \t\t\tif every advertiser[1].frequency >= 10, advertiser[1].frequency <= 20:
+        \t\t\t\t0.6000
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree

@@ -369,7 +369,7 @@ class BonsaiTree(nx.DiGraph):
 
             if type_ == 'range' and len(set(self.node[parent]['split'].values())) == 1:
                 feature = self._get_feature(parent, child, state_node=parent)
-                if '.' not in feature:
+                if '.' not in feature or 'segment' in feature:
                     header = 'switch {}:'.format(feature)  # appropriate indentation added later
 
                     self.node[parent]['switch_header'] = header
@@ -488,7 +488,8 @@ class BonsaiTree(nx.DiGraph):
 
         pre_out = ''
 
-        if type_ == 'range' and conditional == 'if' and len(set(self.node[parent]['split'].values())) == 1:
+        if type_ == 'range' and conditional == 'if' and len(set(self.node[parent]['split'].values())) == 1\
+                and self.node[parent].get('switch_header'):
             pre_out = self.node[parent]['switch_header'] + '\n'
 
         return pre_out
@@ -509,7 +510,8 @@ class BonsaiTree(nx.DiGraph):
             out = '{indent}{conditional}'
             if type_ is not None and all(isinstance(x, (list, tuple)) for x in (feature, type_)):
                 out += ' ' + join_statement + ' ' + ', '.join(
-                    self._get_if_conditional(v, t, f, i) for v, t, f, i in zip(value, type_, feature, is_negated)
+                    self._get_if_conditional(v, t, f, i, join_statement=join_statement) for v, t, f, i
+                    in zip(value, type_, feature, is_negated)
                 )
             elif type_ is not None and not any(isinstance(x, (list, tuple)) for x in (feature, type_)):
                 out += ' ' + self._get_if_conditional(value, type_, feature, is_negated)
@@ -606,7 +608,7 @@ class BonsaiTree(nx.DiGraph):
 
         return out
 
-    def _get_if_conditional(self, value, type_, feature, is_negated):
+    def _get_if_conditional(self, value, type_, feature, is_negated, join_statement=None):
 
         if type_ not in {'range', 'membership', 'assignment'}:
             raise ValueError(
@@ -616,7 +618,7 @@ class BonsaiTree(nx.DiGraph):
         if is_absent_value(value):
             out = self._get_if_conditional_missing_value(type_, feature)
         else:
-            out = self._get_if_conditional_present_value(value, type_, feature)
+            out = self._get_if_conditional_present_value(value, type_, feature, join_statement=join_statement)
 
         if is_negated:
             out = 'not {}'.format(out)
@@ -628,9 +630,9 @@ class BonsaiTree(nx.DiGraph):
 
         return out
 
-    def _get_if_conditional_present_value(self, value, type_, feature):
+    def _get_if_conditional_present_value(self, value, type_, feature, join_statement=None):
         if type_ == 'range':
-            out = self._get_range_statement(value, feature)
+            out = self._get_range_statement(value, feature, join_statement=join_statement)
         elif type_ == 'membership':
             value = tuple(value)
             if isinstance(value[0], basestring):
@@ -664,17 +666,33 @@ class BonsaiTree(nx.DiGraph):
 
         return out
 
-    def _get_range_statement(self, value, feature):
+    def _get_range_statement(self, value, feature, join_statement=None):
         left_bound, right_bound = value
 
         if self._is_finite(left_bound) and self._is_finite(right_bound):
             left_bound = round(left_bound, 4)
             right_bound = round(right_bound, 4)
-            out = '{feature} range ({left_bound}, {right_bound})'.format(
-                feature=feature,
-                left_bound=left_bound,
-                right_bound=right_bound
-            )
+            if left_bound < right_bound and 'advertiser' not in feature:
+                out = '{feature} range ({left_bound}, {right_bound})'.format(
+                    feature=feature,
+                    left_bound=left_bound,
+                    right_bound=right_bound
+                )
+            elif left_bound < right_bound and 'advertiser' in feature:
+                if join_statement == 'any':
+                    raise ValueError('Cannot combine {} range with "any" join_statement.'.format(feature))
+                join = '' if join_statement else 'every '
+                out = '{join}{feature} >= {left_bound}, {feature} <= {right_bound}'.format(
+                    join=join,
+                    feature=feature,
+                    left_bound=left_bound,
+                    right_bound=right_bound
+                )
+            else:
+                out = '{feature} = {left_bound}'.format(
+                    feature=feature,
+                    left_bound=left_bound
+                )
         elif not self._is_finite(left_bound) and self._is_finite(right_bound):
             right_bound = round(right_bound, 4)
             out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
