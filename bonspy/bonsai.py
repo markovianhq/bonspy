@@ -64,8 +64,6 @@ class BonsaiTree(nx.DiGraph):
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__(**kwargs)
-            for key, value in kwargs.items():
-                setattr(self, key, value)
 
     @property
     def bonsai_encoded(self):
