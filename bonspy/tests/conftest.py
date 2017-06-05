@@ -6,6 +6,8 @@ from __future__ import (
 )
 
 from collections import OrderedDict
+import gzip
+import os
 
 import networkx as nx
 
@@ -927,3 +929,66 @@ def multiple_compound_features_graph():
     )
 
     return g
+
+
+@pytest.fixture
+def data_features_and_file():
+    base_path = os.path.dirname(__file__)
+    path = os.path.join(base_path, 'data/test.csv.gz')
+
+    features = ['country',
+                'region',
+                'city',
+                'user_day',
+                'user_hour',
+                'os_extended',
+                'browser',
+                'language'
+                ]
+
+    return features, path
+
+
+@pytest.fixture
+def small_data_features_and_file(tmpdir):
+    features = b'os,city\n'
+    data = [
+        b'iOS,Berlin\n',
+        b'Android,Berlin\n',
+        b'iOS,Hamburg\n',
+        b'iOS,Hamburg\n',
+        b'iOS,\n',
+        b',Berlin\n',
+        b',Bremen\n'
+    ]
+
+    path = str(tmpdir.join('test_data.csv.gz'))
+
+    with gzip.open(path, 'wb') as file:
+        file.write(features)
+        for line in data:
+            file.write(line)
+
+    return ['os', 'city'], path
+
+
+@pytest.fixture
+def small_data_features_and_file_numeric(tmpdir):
+    features = b'city,user_day\n'
+    data = [
+        b'Berlin,0\n',
+        b'Berlin,1\n',
+        b'Hamburg,\n',
+        b'Hamburg,6\n',
+        b',2\n',
+        b'Berlin,\n',
+        b'Bremen,2\n'
+    ]
+    path = str(tmpdir.join('test_data_numeric.csv.gz'))
+
+    with gzip.open(path, 'wb') as file:
+        file.write(features)
+        for line in data:
+            file.write(line)
+
+    return ['city', 'user_day'], path
