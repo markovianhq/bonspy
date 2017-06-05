@@ -14,6 +14,7 @@ setup(
     author_email='contact@markovian.com',
     packages=['bonspy'],
     package_dir={'bonspy': 'bonspy'},
+    package_data={'bonspy': ['tests/data/*.csv.gz']},
     url='https://github.com/markovianhq/bonspy',
     download_url='https://github.com/markovianhq/bonspy/tarball/master',
     classifiers=[
