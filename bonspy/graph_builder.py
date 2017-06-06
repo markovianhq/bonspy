@@ -10,17 +10,19 @@ import pandas as pd
 
 class GraphBuilder:
 
-    def __init__(self, input_, features, lazy_formatters=(), types_dict={}):
+    def __init__(self, input_, features, lazy_formatters=(), types_dict={}, functions=()):
         """
         :param input_: str or list of str, path to gzipped csv input
         :param features: iterable, ordered features to build the tree with
         :param lazy_formatters: tuple of tuples, e.g. (('os', str), (user_day, int))
         :param types_dict: dict, types to be used for split, defaults to "assignment"
+        :param functions: iterable, functions that return node_dict and take node_dict and row as arguments
         """
         self.input_ = glob(input_) if isinstance(input_, str) else input_
         self.features = features
         self.types_iterable = self._get_types_iterable(types_dict)
         self.lazy_formatters = self._get_lazy_formatter(lazy_formatters)
+        self.functions = functions
         self.edge_map_ = None
 
     def _get_types_iterable(self, types_dict):
@@ -171,6 +173,11 @@ class GraphBuilder:
     def _update_parent_split(graph, parent, feature):
         graph.node[parent]['split'] = feature
         return graph
+
+    def _apply_functions(self, node_dict, row):
+        for function_ in self.functions:
+            node_dict = function_(node_dict, row)
+        return node_dict
 
     def _add_new_feature(self, state, new_feature):
         feature, value = new_feature

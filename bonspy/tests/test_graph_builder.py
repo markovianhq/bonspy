@@ -1,3 +1,4 @@
+import gzip
 from unittest.mock import Mock
 from random import random
 from bonspy.graph_builder import GraphBuilder, ConstantBidder, EstimatorBidder
@@ -35,6 +36,27 @@ def test_graph_builder(data_features_and_file):
     leaves = [n for n in graph.node if graph.out_degree(n) == 0]
 
     assert all([graph.node[n].get('is_leaf', graph.node[n].get('is_default_leaf', False)) for n in leaves])
+
+
+def test_graph_builder_functions(data_features_and_file):
+    features, path = data_features_and_file
+
+    def events_counter(node_dict, *args):
+        try:
+            node_dict['events'] += 1
+        except KeyError:
+            node_dict['events'] = 1
+        return node_dict
+
+    builder = GraphBuilder(path, features, functions=(events_counter,))
+    graph = builder.get_graph()
+
+    normal_leaves = [n for n in graph.node if graph.node[n].get('is_leaf')]
+    file = gzip.GzipFile(path)
+    headers = next(file)  # NOQA
+    events = sum([1 for _ in file])
+
+    assert sum([graph.node[n]['events'] for n in normal_leaves]) == graph.node[(0, 0)]['events'] == events
 
 
 def test_constant_bidder(data_features_and_file):
