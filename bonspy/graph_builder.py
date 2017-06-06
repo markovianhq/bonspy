@@ -20,11 +20,20 @@ class GraphBuilder:
         self.input_ = glob(input_) if isinstance(input_, str) else input_
         self.features = features
         self.types_iterable = self._get_types_iterable(types_dict)
-        self.lazy_formatters = OrderedDict(lazy_formatters) or defaultdict(lambda: (lambda x: x))
+        self.lazy_formatters = self._get_lazy_formatter(lazy_formatters)
         self.edge_map_ = None
 
     def _get_types_iterable(self, types_dict):
         return tuple(types_dict.get(f, 'assignment') for f in self.features)
+
+    @staticmethod
+    def _get_lazy_formatter(formatters):
+        if not formatters:
+            return defaultdict(lambda: (lambda x: x))
+        else:
+            lazy_formatters = defaultdict(lambda: str)
+            lazy_formatters.update(formatters)
+            return lazy_formatters
 
     def get_data(self):
         for file in self.input_:
@@ -55,7 +64,7 @@ class GraphBuilder:
         for file in self.input_:
             x = pd.read_csv(
                 file, usecols=self.features, compression='gzip', engine='c', dtype=str
-            ).fillna(value='').values
+            ).fillna(value='')[self.features].values
             self._partial_fit_edge_map_(x)
             del x
 
@@ -77,35 +86,44 @@ class GraphBuilder:
 
     def _add_branch(self, graph, row, node_index):
         parent = (0, 0)
+        graph.node[parent] = self._apply_functions(graph.node[parent], row)
+
         for feature in self.features:
             feature_value = row[feature]
             enc_feature_value = self._get_enc_feature_value(feature, feature_value)
 
-            childless = self._check_if_childless(graph, parent)
-            if childless:
-                default_leaf = (node_index, -1)
-                state = self._get_state(graph, parent)
-                graph = self._add_node(graph, default_leaf, state, is_default_leaf=True)
-                node_index += 1
-                child = None
-            else:
-                child = self._get_child(graph, parent, enc_feature_value)
+            child = self._get_child(graph, parent, enc_feature_value)
             if not child:
+
+                childless = self._check_if_childless(graph, parent)
+                if childless:
+                    default_leaf = (node_index, -1)
+                    state = self._get_state(graph, parent)
+                    graph = self._add_node(graph, default_leaf, state, is_default_leaf=True)
+                    node_index += 1
+
                 child = self._get_node_id(feature, feature_value, node_index)
                 state = self._get_state(graph, parent, new_feature=(feature, feature_value))
                 graph = self._add_node(graph, child, state)
                 graph = self._connect_node_to_parent(graph, parent, child, feature, feature_value)
                 graph = self._update_parent_split(graph, parent, feature)
                 node_index += 1
+
+            graph.node[child] = self._apply_functions(graph.node[child], row)
             parent = child
         else:
             graph.node[child]['is_leaf'] = True
+
         return graph, node_index
 
     def _get_enc_feature_value(self, feature, feature_value):
         feature_index = self.features.index(feature)
         feature_mapping = self.edge_map_[feature_index]
-        enc_feature_value = feature_mapping[feature_value]
+        try:
+            enc_feature_value = feature_mapping[feature_value]
+        except KeyError:  # numpy and pandas don't support NaN values in int columns
+            feature_value_ = str(float(feature_value))
+            enc_feature_value = feature_mapping[feature_value_]
         return enc_feature_value
 
     @staticmethod
