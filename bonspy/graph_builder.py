@@ -163,7 +163,8 @@ class GraphBuilder:
     def _connect_node_to_parent(self, graph, parent, new_node, feature, feature_value):
         feature_index = self.features.index(feature)
         type_ = self.types_iterable[feature_index]
-        graph.add_edge(parent, new_node, type=type_, value=feature_value)
+        formatter = self._get_formatter(self.lazy_formatters[feature])
+        graph.add_edge(parent, new_node, type=type_, value=formatter(feature_value))
         return graph
 
     @staticmethod
