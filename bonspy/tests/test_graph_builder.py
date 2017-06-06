@@ -55,7 +55,7 @@ def test_estimator_bidder(data_features_and_file):
     graph = builder.get_graph()
 
     rate_estimator = Mock()
-    rate_estimator.dict_vectorizer = lambda x: x
+    rate_estimator.dict_vectorizer = lambda x, **kwargs: x
     rate_estimator.predict = lambda x: 0.5 * (1 + random())
 
     bidder = EstimatorBidder(base_bid=5., estimators=(rate_estimator, ))

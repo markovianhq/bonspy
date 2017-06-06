@@ -185,15 +185,11 @@ class GraphBuilder:
 
 class Bidder(metaclass=ABCMeta):
 
-    def __int__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
     def compute_bids(self, graph):
         leaves = self.get_leaves(graph)
         for leaf in leaves:
-            kwarg = self.get_bid(graph=graph, leaf=leaf)
-            for key, value in kwarg.items():
+            output_dict = self.get_bid(graph=graph, leaf=leaf)
+            for key, value in output_dict.items():
                 graph.node[leaf][key] = value
         return graph
 
@@ -212,8 +208,9 @@ class Bidder(metaclass=ABCMeta):
 class ConstantBidder(Bidder):
 
     def __init__(self, bid=1., **kwargs):
-        super(ConstantBidder, self).__init__(**kwargs)
         self.bid = bid
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def get_bid(self, *args, **kwargs):
         return {'output': self.bid}
@@ -222,9 +219,10 @@ class ConstantBidder(Bidder):
 class EstimatorBidder(Bidder):
 
     def __init__(self, base_bid=1., estimators=(), **kwargs):
-        super(EstimatorBidder, self).__init__(**kwargs)
         self.base_bid = base_bid
         self.estimators = estimators
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def get_bid(self, *args, **kwargs):
         graph = kwargs['graph']
@@ -232,6 +230,6 @@ class EstimatorBidder(Bidder):
         state = graph.node[leaf]['state']
         bid = self.base_bid
         for estimator in self.estimators:
-            x = estimator.dict_vectorizer(state)
+            x = estimator.dict_vectorizer(state, **self.__dict__)
             bid *= estimator.predict(x)
         return {'output': bid}
