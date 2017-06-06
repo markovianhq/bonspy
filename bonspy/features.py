@@ -106,6 +106,9 @@ def _apply_operations(feature, value):
         return value
 
     for operation in operations:
-        value = operation(value)
+        try:
+            value = operation(value)
+        except TypeError:  # `value` is None
+            pass
 
     return value
