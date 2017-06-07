@@ -72,6 +72,7 @@ class GraphBuilder:
                     default_leaf = node_index
                     state = self._get_state(graph, parent)
                     graph = self._add_node(graph, default_leaf, state, is_default_leaf=True)
+                    graph.add_edge(parent, default_leaf)
                     node_index += 1
 
                 child = node_index
@@ -107,10 +108,10 @@ class GraphBuilder:
         graph.add_node(new_node, state=state, **kwargs)
         return graph
 
-    @staticmethod
-    def _get_child(graph, parent, enc_feature_value):
-        edges = graph.edges_iter(parent)
-        children = (child for _, child in edges)
+    def _get_child(self, graph, parent, feature, feature_value):
+        edges = graph.edges_iter(parent, data=True)
+        children = ((child, data) for _, child, data in edges if data)  # filter out default leaves
+        formatter = self._get_formatter(self.lazy_formatters[feature])
         try:
             child = next(child for child, data in children if data.get('value') == formatter(feature_value))
         except StopIteration:
