@@ -56,7 +56,7 @@ def test_graph_builder_functions(data_features_and_file):
     headers = next(file)  # NOQA
     events = sum([1 for _ in file])
 
-    assert sum([graph.node[n]['events'] for n in normal_leaves]) == graph.node[(0, 0)]['events'] == events
+    assert sum([graph.node[n]['events'] for n in normal_leaves]) == graph.node[0]['events'] == events
 
 
 def test_constant_bidder(data_features_and_file):

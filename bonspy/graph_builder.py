@@ -5,7 +5,6 @@ import gzip
 from glob import glob
 
 import networkx as nx
-import pandas as pd
 
 
 class GraphBuilder:
@@ -23,7 +22,6 @@ class GraphBuilder:
         self.types_iterable = self._get_types_iterable(types_dict)
         self.lazy_formatters = self._get_lazy_formatter(lazy_formatters)
         self.functions = functions
-        self.edge_map_ = None
 
     def _get_types_iterable(self, types_dict):
         return tuple(types_dict.get(f, 'assignment') for f in self.features)
@@ -42,9 +40,8 @@ class GraphBuilder:
             data = DictReader(gzip.open(file, 'rt', encoding='utf-8'))
             yield from data
 
-    def get_graph(self, graph=None, edge_map=None):
+    def get_graph(self, graph=None):
         graph, node_index = self._seed_graph(graph)
-        self._get_edge_map_from_file(edge_map=edge_map)
 
         data = self.get_data()
         for row in data:
@@ -56,55 +53,29 @@ class GraphBuilder:
     def _seed_graph(graph):
         if not graph:
             graph = nx.DiGraph()
-            root = (0, 0)
+            root = 0
             graph.add_node(root, state=OrderedDict())
-        node_index = 1 + max((n[0] for n in graph.nodes_iter()))
+        node_index = 1 + max((n for n in graph.nodes_iter()))
         return graph, node_index
 
-    def _get_edge_map_from_file(self, edge_map=None):
-        self.edge_map_ = edge_map
-        for file in self.input_:
-            x = pd.read_csv(
-                file, usecols=self.features, compression='gzip', engine='c', dtype=str
-            ).fillna(value='')[self.features].values
-            self._partial_fit_edge_map_(x)
-            del x
-
-    def _partial_fit_edge_map_(self, x):
-        if self.edge_map_ is None:
-            self._fit_edge_map(x)
-        else:
-            for i, col in enumerate(x.T):
-                old_keys = set(self.edge_map_[i].keys())
-                new_keys = set(col).difference(old_keys)
-                old_max_index = max(self.edge_map_[i].values())
-                self.edge_map_[i].update({key: i for i, key in enumerate(new_keys, start=old_max_index + 1)})
-
-    def _fit_edge_map(self, x):
-        self.edge_map_ = []
-        for col in x.T:
-            uniques = set(col)
-            self.edge_map_.append({key: i for i, key in enumerate(uniques)})
-
     def _add_branch(self, graph, row, node_index):
-        parent = (0, 0)
+        parent = 0
         graph.node[parent] = self._apply_functions(graph.node[parent], row)
 
         for feature in self.features:
             feature_value = row[feature]
-            enc_feature_value = self._get_enc_feature_value(feature, feature_value)
-
-            child = self._get_child(graph, parent, enc_feature_value)
+            child = self._get_child(graph, parent, feature, feature_value)
             if not child:
 
                 childless = self._check_if_childless(graph, parent)
                 if childless:
-                    default_leaf = (node_index, -1)
+                    default_leaf = node_index
                     state = self._get_state(graph, parent)
                     graph = self._add_node(graph, default_leaf, state, is_default_leaf=True)
+                    graph.add_edge(parent, default_leaf)
                     node_index += 1
 
-                child = self._get_node_id(feature, feature_value, node_index)
+                child = node_index
                 state = self._get_state(graph, parent, new_feature=(feature, feature_value))
                 graph = self._add_node(graph, child, state)
                 graph = self._connect_node_to_parent(graph, parent, child, feature, feature_value)
@@ -117,16 +88,6 @@ class GraphBuilder:
             graph.node[child]['is_leaf'] = True
 
         return graph, node_index
-
-    def _get_enc_feature_value(self, feature, feature_value):
-        feature_index = self.features.index(feature)
-        feature_mapping = self.edge_map_[feature_index]
-        try:
-            enc_feature_value = feature_mapping[feature_value]
-        except KeyError:  # numpy and pandas don't support NaN values in int columns
-            feature_value_ = str(float(feature_value))
-            enc_feature_value = feature_mapping[feature_value_]
-        return enc_feature_value
 
     @staticmethod
     def _check_if_childless(graph, parent):
@@ -147,20 +108,15 @@ class GraphBuilder:
         graph.add_node(new_node, state=state, **kwargs)
         return graph
 
-    @staticmethod
-    def _get_child(graph, parent, enc_feature_value):
-        edges = graph.edges_iter(parent)
-        children = (child for _, child in edges)
+    def _get_child(self, graph, parent, feature, feature_value):
+        edges = graph.edges_iter(parent, data=True)
+        children = ((child, data) for _, child, data in edges if data)  # filter out default leaves
+        formatter = self._get_formatter(self.lazy_formatters[feature])
         try:
-            child = next(child for child in children if child[1] == enc_feature_value)
+            child = next(child for child, data in children if data.get('value') == formatter(feature_value))
         except StopIteration:
             child = None
         return child
-
-    def _get_node_id(self, feature, feature_value, node_index):
-        enc_feature_value = self._get_enc_feature_value(feature, feature_value)
-        new_node = (node_index, enc_feature_value)
-        return new_node
 
     def _connect_node_to_parent(self, graph, parent, new_node, feature, feature_value):
         feature_index = self.features.index(feature)
