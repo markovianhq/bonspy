@@ -6,6 +6,7 @@ from __future__ import (
 )
 
 from collections import deque
+import networkx as nx
 import pytest
 import re
 
@@ -95,6 +96,31 @@ def test_multiple_compound_features(multiple_compound_features_graph):
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree
+
+
+def test_get_range_output_for_finite_boundary_points(graph):
+    some_graph = nx.DiGraph(graph)
+    tree = BonsaiTree(some_graph)
+
+    for join in ['any', 'every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(0, 1, 'user_hour', join_statement=join)
+        assert out == 'user_hour range (0, 1)'
+
+    for join in ['any', 'every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(1, 1, 'user_hour', join_statement=join)
+        assert out == 'user_hour = 1'
+
+    for join in ['any', 'every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(1, 1, 'advertiser[123].recency', join_statement=join)
+        assert out == 'advertiser[123].recency = 1'
+
+    for join in ['every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(1, 2, 'advertiser[123].recency', join_statement=join)
+        assert out == (join is None) * 'every ' + 'advertiser[123].recency >= 1, advertiser[123].recency <= 2'
+
+    join = 'any'
+    with pytest.raises(ValueError):
+        tree._get_range_output_for_finite_boundary_points(1, 2, 'advertiser[123].recency', join_statement=join)
 
 
 def test_two_range_features(graph_two_range_features):
