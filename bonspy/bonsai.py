@@ -35,13 +35,13 @@ class BonsaiTree(nx.DiGraph):
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
 
     :param graph: (optional) NetworkX graph to be exported to Bonsai.
-    :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
+    :param feature_order: (optional), list required when a parent node is split on more than one feature.
         Splitting the parent node on more than one feature is indicated through its `split` attribute
         set to an OrderedDict object [(child id, feature the parent node is split on]).
-        The dictionary `feature_order` then provides the order these different features appear in the
+        The list `feature_order` then provides the order these different features appear in the
         Bonsai language output.
-    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
-        of the form {feature: {feature value: order position}}.
+    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of lists
+        of the form {feature: [feature value 1, feature value 2, ...]}.
     :param absence_values: (optional), Dictionary feature name -> iterable of values whose communal absence
         signals absence of the respective feature.
     """
@@ -49,7 +49,7 @@ class BonsaiTree(nx.DiGraph):
     def __init__(self, graph=None, feature_order=None, feature_value_order=None, absence_values=None, **kwargs):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
-            self.feature_order = feature_order or {}
+            self.feature_order = feature_order or []
             self.feature_value_order = feature_value_order or {}
             self.absence_values = absence_values or {}
             for key, value in kwargs.items():
@@ -309,22 +309,22 @@ class BonsaiTree(nx.DiGraph):
 
     def _get_feature_order_key(self, feature):
         feature_order = self.feature_order
-        feature_order_key = self._get_order_key(dict_=feature_order, key=feature)
+        feature_order_key = self._get_order_key(list_=feature_order, key=feature)
         return feature_order_key
 
     def _get_value_order_key(self, feature, value):
-        value_order = self.feature_value_order.get(feature, {})
-        value_order_key = self._get_order_key(dict_=value_order, key=value)
+        value_order = self.feature_value_order.get(feature, [])
+        value_order_key = self._get_order_key(list_=value_order, key=value)
         return value_order_key
 
     @staticmethod
-    def _get_order_key(dict_, key):
+    def _get_order_key(list_, key):
         order_key = 0
-        if not dict_ == {}:
+        if not list_ == []:
             try:
-                order_key = dict_[key]
-            except KeyError:
-                order_key = max(dict_.values()) + 1
+                order_key = list_.index(key)
+            except ValueError:
+                order_key = len(list_)
 
         return order_key
 
