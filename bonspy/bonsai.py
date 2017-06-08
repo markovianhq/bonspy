@@ -12,7 +12,7 @@ from functools import cmp_to_key
 
 import networkx as nx
 
-from bonspy.features import compound_features, get_validated
+from bonspy.features import compound_features, get_validated, objects
 from bonspy.utils import compare_vectors, is_absent_value
 
 try:
@@ -64,8 +64,6 @@ class BonsaiTree(nx.DiGraph):
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__(**kwargs)
-            for key, value in kwargs.items():
-                setattr(self, key, value)
 
     @property
     def bonsai_encoded(self):
@@ -671,27 +669,9 @@ class BonsaiTree(nx.DiGraph):
         if self._is_finite(left_bound) and self._is_finite(right_bound):
             left_bound = round(left_bound, 4)
             right_bound = round(right_bound, 4)
-            if left_bound < right_bound and 'advertiser' not in feature:
-                out = '{feature} range ({left_bound}, {right_bound})'.format(
-                    feature=feature,
-                    left_bound=left_bound,
-                    right_bound=right_bound
-                )
-            elif left_bound < right_bound and 'advertiser' in feature:
-                if join_statement == 'any':
-                    raise ValueError('Cannot combine {} range with "any" join_statement.'.format(feature))
-                join = '' if join_statement else 'every '
-                out = '{join}{feature} >= {left_bound}, {feature} <= {right_bound}'.format(
-                    join=join,
-                    feature=feature,
-                    left_bound=left_bound,
-                    right_bound=right_bound
-                )
-            else:
-                out = '{feature} = {left_bound}'.format(
-                    feature=feature,
-                    left_bound=left_bound
-                )
+            out = self._get_range_output_for_finite_boundary_points(
+                left_bound=left_bound, right_bound=right_bound, feature=feature, join_statement=join_statement
+            )
         elif not self._is_finite(left_bound) and self._is_finite(right_bound):
             right_bound = round(right_bound, 4)
             out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
@@ -706,6 +686,38 @@ class BonsaiTree(nx.DiGraph):
             )
 
         return out
+
+    def _get_range_output_for_finite_boundary_points(self, left_bound, right_bound, feature, join_statement=None):
+        if left_bound < right_bound and all([obj not in feature for obj in objects]):
+            out = '{feature} range ({left_bound}, {right_bound})'.format(
+                feature=feature,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+        elif left_bound < right_bound and any([obj in feature for obj in objects]):
+            join = self._get_join(join_statement)
+            out = '{join}{feature} >= {left_bound}, {feature} <= {right_bound}'.format(
+                join=join,
+                feature=feature,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+        else:
+            out = '{feature} = {left_bound}'.format(
+                feature=feature,
+                left_bound=left_bound
+            )
+        return out
+
+    @staticmethod
+    def _get_join(join_statement):
+        if join_statement == 'any':
+            raise ValueError(
+                'Cannot combine object feature "range" with "any" join_statement.'
+                'Object features are: {}.'.format(objects)
+            )
+        join = '' if join_statement else 'every '
+        return join
 
     def _get_default_conditional_text(self, parent, child):
         type_ = self._get_sibling_type(parent, child)
