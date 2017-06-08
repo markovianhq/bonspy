@@ -35,22 +35,22 @@ class BonsaiTree(nx.DiGraph):
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
 
     :param graph: (optional) NetworkX graph to be exported to Bonsai.
-    :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
+    :param feature_order: (optional), iterable required when a parent node is split on more than one feature.
         Splitting the parent node on more than one feature is indicated through its `split` attribute
         set to an OrderedDict object [(child id, feature the parent node is split on]).
-        The dictionary `feature_order` then provides the order these different features appear in the
+        The list `feature_order` then provides the order these different features appear in the
         Bonsai language output.
-    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
-        of the form {feature: {feature value: order position}}.
+    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of lists
+        of the form {feature: [feature value 1, feature value 2, ...]}.
     :param absence_values: (optional), Dictionary feature name -> iterable of values whose communal absence
         signals absence of the respective feature.
     """
 
-    def __init__(self, graph=None, feature_order=None, feature_value_order=None, absence_values=None, **kwargs):
+    def __init__(self, graph=None, feature_order=(), feature_value_order={}, absence_values=None, **kwargs):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
-            self.feature_order = feature_order or {}
-            self.feature_value_order = feature_value_order or {}
+            self.feature_order = self._convert_to_dict(feature_order)
+            self.feature_value_order = self._get_feature_value_order(feature_value_order)
             self.absence_values = absence_values or {}
             for key, value in kwargs.items():
                 setattr(self, key, value)
@@ -64,6 +64,17 @@ class BonsaiTree(nx.DiGraph):
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__(**kwargs)
+
+    @staticmethod
+    def _convert_to_dict(feature_order):
+        for index, f in enumerate(feature_order):
+            if isinstance(f, list):
+                feature_order[index] = tuple(f)
+        feature_order = {f: index for index, f in enumerate(feature_order)}
+        return feature_order
+
+    def _get_feature_value_order(self, feature_value_order):
+        return {feature: self._convert_to_dict(list_) for feature, list_ in feature_value_order.items()}
 
     @property
     def bonsai_encoded(self):
