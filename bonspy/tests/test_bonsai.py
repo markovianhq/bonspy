@@ -6,6 +6,7 @@ from __future__ import (
 )
 
 from collections import deque
+import networkx as nx
 import pytest
 import re
 
@@ -56,17 +57,12 @@ def test_compound_feature_presence(graph):
 
 def test_multiple_compound_features(multiple_compound_features_graph):
     feature_value_order = {
-        'segment': {1: 0, 2: 1},
-        'segment.age': {(0, 10): 0, (10, 20): 1},
-        'advertiser.lifetime_frequency': {(5, 10): 0, (None, 4): 1, (11, 11): 2, (12, None): 3, (0, 10): 4}
+        'segment': [1, 2],
+        'segment.age': [(0, 10), (10, 20)],
+        'advertiser.lifetime_frequency': [(5, 10), (None, 4), (11, 11), (12, None), (0, 10)]
     }
 
-    feature_order = {
-        'segment': 1,
-        'segment.age': 2,
-        'advertiser.lifetime_frequency': 3,
-        'user_day': 4
-    }
+    feature_order = ['segment', 'segment.age', 'advertiser.lifetime_frequency', 'user_day']
 
     tree = BonsaiTree(
         multiple_compound_features_graph,
@@ -100,6 +96,31 @@ def test_multiple_compound_features(multiple_compound_features_graph):
     '''.replace(8 * ' ', '').strip().lstrip('\n') + '\n'
 
     assert tree.bonsai == expected_tree
+
+
+def test_get_range_output_for_finite_boundary_points(graph):
+    some_graph = nx.DiGraph(graph)
+    tree = BonsaiTree(some_graph)
+
+    for join in ['any', 'every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(0, 1, 'user_hour', join_statement=join)
+        assert out == 'user_hour range (0, 1)'
+
+    for join in ['any', 'every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(1, 1, 'user_hour', join_statement=join)
+        assert out == 'user_hour = 1'
+
+    for join in ['any', 'every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(1, 1, 'advertiser[123].recency', join_statement=join)
+        assert out == 'advertiser[123].recency = 1'
+
+    for join in ['every', None]:
+        out = tree._get_range_output_for_finite_boundary_points(1, 2, 'advertiser[123].recency', join_statement=join)
+        assert out == (join is None) * 'every ' + 'advertiser[123].recency >= 1, advertiser[123].recency <= 2'
+
+    join = 'any'
+    with pytest.raises(ValueError):
+        tree._get_range_output_for_finite_boundary_points(1, 2, 'advertiser[123].recency', join_statement=join)
 
 
 def test_two_range_features(graph_two_range_features):
@@ -229,7 +250,7 @@ def test_segment_order_mapping(graph):
     tree = BonsaiTree(
         graph,
         feature_value_order={
-            'segment': {12345: 1, 67890: 0}
+            'segment': [67890, 12345]
         }
     )
 
@@ -241,7 +262,7 @@ def test_language_order_mapping(graph_compound_feature):
     tree = BonsaiTree(
         graph_compound_feature,
         feature_value_order={
-            'os': {'windows': 0, 'linux': 1}
+            'os': ['windows', 'linux']
         }
     )
 
@@ -254,7 +275,7 @@ def test_language_order_mapping_one_value(graph_compound_feature):
     tree = BonsaiTree(
         graph_compound_feature,
         feature_value_order={
-            'os': {'windows': 0}
+            'os': ['windows']
         }
     )
 
@@ -273,9 +294,7 @@ def test_language_segment_age_order(graph):
 def test_feature_order_mapping(graph):
     tree = BonsaiTree(
         graph,
-        feature_order={
-            'segment.age': 1, 'language': 0
-        }
+        feature_order=['language', 'segment.age']
     )
 
     # language comes first
@@ -329,15 +348,12 @@ def test_missing_values(missing_values_graph):
     graph = missing_values_graph
 
     feature_value_order = {
-        'segment': {1: 0, 2: 1},
-        'os': {("linux", "osx"): 0, ("linux",): 1},
-        'segment.age': {(0, 10): 0, (10, float('inf')): 1}
+        'segment': [1, 2],
+        'os': [("linux", "osx"), ("linux",)],
+        'segment.age': [(0, 10), (10, float('inf'))]
     }
 
-    feature_order = {
-        'segment': 0,
-        'os': 1
-    }
+    feature_order = ['segment', 'os']
 
     tree = BonsaiTree(
         graph,
@@ -378,13 +394,11 @@ def test_missing_values_short(missing_values_graph_short):
     graph = missing_values_graph_short
 
     feature_value_order = {
-        'segment': {1: 0, 2: 1},
-        'segment.age': {(0, 10): 0}
+        'segment': [1, 2],
+        'segment.age': [(0, 10)]
     }
 
-    feature_order = {
-        'segment': 0
-    }
+    feature_order = ['segment']
 
     tree = BonsaiTree(
         graph,
@@ -416,12 +430,9 @@ def test_negated_values(negated_values_graph):
 
     tree = BonsaiTree(
         graph,
-        feature_order={
-            ('segment', 'segment', 'segment'): 1,
-            ('segment', 'segment'): 0
-        },
+        feature_order=[('segment', 'segment'), ('segment', 'segment', 'segment')],
         feature_value_order={
-            ('segment', 'segment'): {(1, 10): 0, (1, 2): 1}
+            ('segment', 'segment'): [(1, 10), (1, 2)]
         }
     )
 

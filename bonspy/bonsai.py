@@ -12,7 +12,7 @@ from functools import cmp_to_key
 
 import networkx as nx
 
-from bonspy.features import compound_features, get_validated
+from bonspy.features import compound_features, get_validated, objects
 from bonspy.utils import compare_vectors, is_absent_value
 
 try:
@@ -35,22 +35,22 @@ class BonsaiTree(nx.DiGraph):
     The Bonsai text representation of this tree is stored in its `bonsai` attribute.
 
     :param graph: (optional) NetworkX graph to be exported to Bonsai.
-    :param feature_order: (optional), Dictionary required when a parent node is split on more than one feature.
+    :param feature_order: (optional), iterable required when a parent node is split on more than one feature.
         Splitting the parent node on more than one feature is indicated through its `split` attribute
         set to an OrderedDict object [(child id, feature the parent node is split on]).
-        The dictionary `feature_order` then provides the order these different features appear in the
+        The list `feature_order` then provides the order these different features appear in the
         Bonsai language output.
-    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of dictionaries
-        of the form {feature: {feature value: order position}}.
+    :param feature_value_order: (optional), Similar to `feature_order` but a dictionary of lists
+        of the form {feature: [feature value 1, feature value 2, ...]}.
     :param absence_values: (optional), Dictionary feature name -> iterable of values whose communal absence
         signals absence of the respective feature.
     """
 
-    def __init__(self, graph=None, feature_order=None, feature_value_order=None, absence_values=None, **kwargs):
+    def __init__(self, graph=None, feature_order=(), feature_value_order={}, absence_values=None, **kwargs):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
-            self.feature_order = feature_order or {}
-            self.feature_value_order = feature_value_order or {}
+            self.feature_order = self._convert_to_dict(feature_order)
+            self.feature_value_order = self._get_feature_value_order(feature_value_order)
             self.absence_values = absence_values or {}
             for key, value in kwargs.items():
                 setattr(self, key, value)
@@ -64,8 +64,17 @@ class BonsaiTree(nx.DiGraph):
             self.bonsai = ''.join(self._tree_to_bonsai())
         else:
             super(BonsaiTree, self).__init__(**kwargs)
-            for key, value in kwargs.items():
-                setattr(self, key, value)
+
+    @staticmethod
+    def _convert_to_dict(feature_order):
+        for index, f in enumerate(feature_order):
+            if isinstance(f, list):
+                feature_order[index] = tuple(f)
+        feature_order = {f: index for index, f in enumerate(feature_order)}
+        return feature_order
+
+    def _get_feature_value_order(self, feature_value_order):
+        return {feature: self._convert_to_dict(list_) for feature, list_ in feature_value_order.items()}
 
     @property
     def bonsai_encoded(self):
@@ -671,27 +680,9 @@ class BonsaiTree(nx.DiGraph):
         if self._is_finite(left_bound) and self._is_finite(right_bound):
             left_bound = round(left_bound, 4)
             right_bound = round(right_bound, 4)
-            if left_bound < right_bound and 'advertiser' not in feature:
-                out = '{feature} range ({left_bound}, {right_bound})'.format(
-                    feature=feature,
-                    left_bound=left_bound,
-                    right_bound=right_bound
-                )
-            elif left_bound < right_bound and 'advertiser' in feature:
-                if join_statement == 'any':
-                    raise ValueError('Cannot combine {} range with "any" join_statement.'.format(feature))
-                join = '' if join_statement else 'every '
-                out = '{join}{feature} >= {left_bound}, {feature} <= {right_bound}'.format(
-                    join=join,
-                    feature=feature,
-                    left_bound=left_bound,
-                    right_bound=right_bound
-                )
-            else:
-                out = '{feature} = {left_bound}'.format(
-                    feature=feature,
-                    left_bound=left_bound
-                )
+            out = self._get_range_output_for_finite_boundary_points(
+                left_bound=left_bound, right_bound=right_bound, feature=feature, join_statement=join_statement
+            )
         elif not self._is_finite(left_bound) and self._is_finite(right_bound):
             right_bound = round(right_bound, 4)
             out = '{feature} <= {right_bound}'.format(feature=feature, right_bound=right_bound)
@@ -706,6 +697,38 @@ class BonsaiTree(nx.DiGraph):
             )
 
         return out
+
+    def _get_range_output_for_finite_boundary_points(self, left_bound, right_bound, feature, join_statement=None):
+        if left_bound < right_bound and all([obj not in feature for obj in objects]):
+            out = '{feature} range ({left_bound}, {right_bound})'.format(
+                feature=feature,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+        elif left_bound < right_bound and any([obj in feature for obj in objects]):
+            join = self._get_join(join_statement)
+            out = '{join}{feature} >= {left_bound}, {feature} <= {right_bound}'.format(
+                join=join,
+                feature=feature,
+                left_bound=left_bound,
+                right_bound=right_bound
+            )
+        else:
+            out = '{feature} = {left_bound}'.format(
+                feature=feature,
+                left_bound=left_bound
+            )
+        return out
+
+    @staticmethod
+    def _get_join(join_statement):
+        if join_statement == 'any':
+            raise ValueError(
+                'Cannot combine object feature "range" with "any" join_statement.'
+                'Object features are: {}.'.format(objects)
+            )
+        join = '' if join_statement else 'every '
+        return join
 
     def _get_default_conditional_text(self, parent, child):
         type_ = self._get_sibling_type(parent, child)
