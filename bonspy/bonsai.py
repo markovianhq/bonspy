@@ -132,6 +132,7 @@ class BonsaiTree(nx.DiGraph):
 
         default_child = next((n for n in self.successors_iter(node_id) if self.node[n].get('is_default_leaf')))
         normal_child = next((n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf')))
+        assert len([n for n in self.successors_iter(node_id) if n not in {default_child, normal_child}]) == 0
 
         if self.node[normal_child].get('is_leaf'):
             self._remove_leaves_and_update_parent_default(node_id, normal_child, default_child)
