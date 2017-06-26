@@ -71,13 +71,13 @@ class GraphBuilder:
                 if childless:
                     default_leaf = node_index
                     state = self._get_state(graph, parent)
-                    graph = self._add_node(graph, default_leaf, state, is_default_leaf=True)
+                    graph.add_node(default_leaf, state=state, is_default_leaf=True)
                     graph.add_edge(parent, default_leaf)
                     node_index += 1
 
                 child = node_index
                 state = self._get_state(graph, parent, new_feature=(feature, feature_value))
-                graph = self._add_node(graph, child, state)
+                graph.add_node(child, state=state)
                 graph = self._connect_node_to_parent(graph, parent, child, feature, feature_value)
                 graph = self._update_parent_split(graph, parent, feature)
                 node_index += 1
@@ -102,11 +102,6 @@ class GraphBuilder:
         state = graph.node[parent]['state'].copy()
         new_state = self._add_new_feature(state, new_feature) if new_feature else state
         return new_state
-
-    @staticmethod
-    def _add_node(graph, new_node, state, **kwargs):
-        graph.add_node(new_node, state=state, **kwargs)
-        return graph
 
     def _get_child(self, graph, parent, feature, feature_value):
         edges = graph.edges_iter(parent, data=True)
