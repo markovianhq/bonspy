@@ -13,7 +13,7 @@ class GraphBuilder:
         """
         :param input_: str or list of str, path to gzipped csv input
         :param features: iterable, ordered features to build the tree with
-        :param lazy_formatters: tuple of tuples, e.g. (('os', str), (user_day, int))
+        :param lazy_formatters: tuple of tuples, e.g. (('os', str), (user_day, int)) or dict
         :param types_dict: dict, types to be used for split, defaults to "assignment"
         :param functions: iterable, functions that return node_dict and take node_dict and row as arguments
         """
