@@ -994,6 +994,7 @@ def small_data_features_and_file_numeric(tmpdir):
     return ['city', 'user_day'], path
 
 
+@pytest.fixture
 def unsliced_graph():
     g = nx.DiGraph()
     # root
