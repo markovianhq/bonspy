@@ -44,17 +44,26 @@ class BonsaiTree(nx.DiGraph):
         of the form {feature: [feature value 1, feature value 2, ...]}.
     :param absence_values: (optional), Dictionary feature name -> iterable of values whose communal absence
         signals absence of the respective feature.
+    :param slice_feature: (optional) str, feature to be used for slicing. The private _slice_graph method slices out the
+        part of the graph where the "slice_feature" has a value that is contained in the "slice_feature_values".
+        Moreover, it splices out the level where the "splice_feature" is split.
+        The "slice" method assumes that a node never splits on the "slice_feature" together with another feature.
+    :param slice_feature_values: (optional) iterable of strings, feature values to not be sliced off the graph.
     """
 
-    def __init__(self, graph=None, feature_order=(), feature_value_order={}, absence_values=None, **kwargs):
+    def __init__(self, graph=None, feature_order=(), feature_value_order={}, absence_values=None,
+                 slice_feature=None, slice_feature_values=(), **kwargs):
         if graph is not None:
             super(BonsaiTree, self).__init__(graph)
             self.feature_order = self._convert_to_dict(feature_order)
             self.feature_value_order = self._get_feature_value_order(feature_value_order)
             self.absence_values = absence_values or {}
+            self.slice_feature = slice_feature
+            self.slice_feature_values = slice_feature_values
             for key, value in kwargs.items():
                 setattr(self, key, value)
             self._transform_splits()
+            self._slice_graph()
             self._replace_absent_values()
             self._remove_missing_compound_features()
             self._validate_feature_values()
@@ -94,6 +103,91 @@ class BonsaiTree(nx.DiGraph):
 
                 for child_id in self.successors_iter(node_id):
                     self.node[node_id]['split'][child_id] = split
+
+    def _slice_graph(self):
+        root_id = self._get_root()
+
+        queue = deque([root_id])
+        while queue:
+            node_id = queue.popleft()
+            if self.node[node_id].get('is_default_leaf'):
+                continue
+            split_contains_slice_feature = self._split_contains_slice_feature(node_id)
+
+            if not split_contains_slice_feature:
+                next_nodes = self.successors(node_id)
+                queue.extend(next_nodes)
+            else:
+                self._update_sub_graph(node_id)
+
+    def _split_contains_slice_feature(self, node_id):
+        try:
+            split = self.node[node_id]['split']
+            return self.slice_feature in split.values()
+        except KeyError:  # default leaf or leaf
+            return False
+
+    def _update_sub_graph(self, node_id):
+        self._prune_unwnated_children(node_id)
+
+        default_child = next((n for n in self.successors_iter(node_id) if self.node[n].get('is_default_leaf')))
+        normal_child = next((n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf')))
+
+        if self.node[normal_child].get('is_leaf'):
+            self._remove_leaves_and_update_parent_default(node_id, normal_child, default_child)
+        else:
+            self._splice_out_node(normal_child, self.slice_feature, slicing=True)
+
+    def _prune_unwnated_children(self, node_id):
+        prunable_children = [
+            n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf') and
+            self.node[n]['state'].get(self.slice_feature) not in self.slice_feature_values
+        ]
+        for prunable_child in prunable_children:
+            self._remove_sub_graph(prunable_child)
+
+    def _remove_sub_graph(self, node):
+        queue = deque([node])
+        while queue:
+            current_node = queue.popleft()
+            next_nodes = self.successors(current_node)
+            self.remove_node(current_node)
+            queue.extend(next_nodes)
+
+    def _remove_leaves_and_update_parent_default(self, node_id, normal_child, default_child):
+        del self.node[node_id]['split']
+        self._remove_feature_from_state(node_id, self.slice_feature)
+        self.node[node_id] = self.node[normal_child].copy()
+
+        self.remove_edge(node_id, normal_child)
+        self.remove_node(normal_child)
+
+        self.remove_edge(node_id, default_child)
+        self.remove_node(default_child)
+
+        self.node[node_id]['is_leaf'] = True
+
+    def _remove_feature_from_state(self, source, feature):
+        for node_id in self.bfs_nodes(source):
+            try:
+                del self.node[node_id]['state'][feature]
+            except KeyError:  # node_id is default leaf
+                pass
+
+    def _splice_out_node(self, source, feature, slicing=False):
+        self._remove_feature_from_state(source, feature)
+        self._skip_node(source, slicing)
+
+    def _skip_node(self, node_id, slicing):
+        parent_id = next(iter(self.predecessors_iter(node_id)))
+
+        if slicing:
+            self._skip_node_slicing(node_id, parent_id)
+        else:
+            self._skip_node_non_slicing(node_id, parent_id)
+
+        self.remove_edge(parent_id, node_id)
+        self.remove_node(node_id)
 
     def _replace_absent_values(self):
         root_id = self._get_root()
@@ -173,33 +267,39 @@ class BonsaiTree(nx.DiGraph):
         else:
             return False
 
-    def _splice_out_node(self, source, feature):
-        self._remove_feature_from_state(source, feature)
-        self._skip_node(source)
-
-    def _remove_feature_from_state(self, source, feature):
-        for node_id in self.bfs_nodes(source):
-            del self.node[node_id]['state'][feature]
-
-    def _skip_node(self, node_id):
-        parent_id = next(iter(self.predecessors_iter(node_id)))
-
+    def _skip_node_non_slicing(self, node_id, parent_id):
         for _, child_id, edge_data in self.edges(nbunch=(node_id,), data=True):
             if self.node[child_id].get('is_default_leaf'):
                 continue
             else:
                 self.add_edge(parent_id, child_id, attr_dict=edge_data)
                 self.remove_edge(node_id, child_id)
+        del self.node[parent_id]['split'][node_id]
+        self._update_split(parent_id, node_id)
 
-        self._skip_node_update_split(parent_id, node_id)
-        self.remove_edge(parent_id, node_id)
-        self.remove_node(node_id)
-
-    def _skip_node_update_split(self, parent_id, node_id):
+    def _skip_node_slicing(self, node_id, parent_id):
+        for _, child_id, edge_data in self.out_edges(nbunch=(node_id,), data=True):
+            if self.node[child_id].get('is_default_leaf'):
+                self._update_parent_default_leaf(parent_id, child_id)
+                del self.node[child_id]
+            else:
+                self.add_edge(parent_id, child_id, attr_dict=edge_data)
+                self._update_split(parent_id, node_id, child_id=child_id)
+                self.remove_edge(node_id, child_id)
         del self.node[parent_id]['split'][node_id]
 
+    def _update_parent_default_leaf(self, parent_id, new_default):
+        current_parent_default = next(iter(
+            [n for n in self.successors(parent_id) if self.node[n].get('is_default_leaf')]
+        ))
+        self.node[current_parent_default] = self.node[new_default].copy()
+
+    def _update_split(self, parent_id, node_id, child_id=None):
         node_split = self.node[node_id]['split']
-        self.node[parent_id]['split'].update(node_split)
+        if child_id:
+            self.node[parent_id]['split'][child_id] = node_split[child_id]
+        else:
+            self.node[parent_id]['split'].update(node_split)
 
     def _remove_disconnected_nodes(self):
         node_ids = self._get_disconnected_nodes()
@@ -210,8 +310,8 @@ class BonsaiTree(nx.DiGraph):
             node_ids = self._get_disconnected_nodes()
 
     def _get_disconnected_nodes(self):
-        node_ids = [n for n in self.nodes_iter() if not self.successors(n) and not self.predecessors(n)]
-
+        root = self._get_root()
+        node_ids = [n for n in self.nodes_iter() if not self.successors(n) and not self.predecessors(n) and n != root]
         return node_ids
 
     def _prune_redundant_default_leaves(self):

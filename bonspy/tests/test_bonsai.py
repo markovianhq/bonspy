@@ -447,3 +447,24 @@ def test_negated_values(negated_values_graph):
 
     indexes = [tree.bonsai.index(e) for e in expected_conditions]
     assert tree.bonsai.index('any segment[1], not segment[10]') == min(indexes)
+
+
+def test_feature_slicer(unsliced_graph, small_unsliced_graph):
+    tree = BonsaiTree(
+        unsliced_graph,
+        slice_feature='slice_feature',
+        slice_feature_values=('good',)
+    )
+
+    assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
+    assert all(['slice_feature' not in tree.edge[n].get('split', dict()).values() for n in tree.node])
+
+    tree = BonsaiTree(
+        small_unsliced_graph,
+        slice_feature='slice_feature',
+        slice_feature_values=('good',)
+    )
+
+    assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
+    assert all(['slice_feature' not in tree.edge[n].get('split', dict()).values() for n in tree.node])
+    assert tree.node[0]['output'] == 5.
