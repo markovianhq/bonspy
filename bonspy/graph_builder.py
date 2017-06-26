@@ -65,7 +65,7 @@ class GraphBuilder:
         for feature in self.features:
             feature_value = row[feature]
             child = self._get_child(graph, parent, feature, feature_value)
-            if not child:
+            if child is None:
 
                 childless = self._check_if_childless(graph, parent)
                 if childless:
