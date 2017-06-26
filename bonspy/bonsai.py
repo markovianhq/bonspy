@@ -128,7 +128,7 @@ class BonsaiTree(nx.DiGraph):
             return False
 
     def _update_sub_graph(self, node_id):
-        self._prune_unwnated_children(node_id)
+        self._prune_unwanted_children(node_id)
 
         default_child = next((n for n in self.successors_iter(node_id) if self.node[n].get('is_default_leaf')))
         normal_child = next((n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf')))
@@ -138,7 +138,7 @@ class BonsaiTree(nx.DiGraph):
         else:
             self._splice_out_node(normal_child, self.slice_feature, slicing=True)
 
-    def _prune_unwnated_children(self, node_id):
+    def _prune_unwanted_children(self, node_id):
         prunable_children = [
             n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf') and
             self.node[n]['state'].get(self.slice_feature) not in self.slice_feature_values
