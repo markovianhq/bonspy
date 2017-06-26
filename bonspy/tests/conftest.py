@@ -992,3 +992,66 @@ def small_data_features_and_file_numeric(tmpdir):
             file.write(line)
 
     return ['city', 'user_day'], path
+
+
+def unsliced_graph():
+    g = nx.DiGraph()
+    # root
+    g.add_node(0, split='some_feature', state=OrderedDict())
+
+    # level one
+    g.add_node(1, state=OrderedDict([('some_feature', 'value_one')]), is_leaf=True, output=1.)
+    g.add_node(2, state=OrderedDict([('some_feature', 'value_two')]), split='slice_feature')
+    g.add_node('default_one', is_default_leaf=True, state=OrderedDict(), output=0.1)
+
+    # connect root with level one
+    g.add_edge(0, 1, value='value_one', type='assignment')
+    g.add_edge(0, 2, value='value_two', type='assignment')
+    g.add_edge(0, 'default_one')
+
+    # level two
+    g.add_node(3, state=OrderedDict([('some_feature', 'value_two'), ('slice_feature', 'bad')]), is_leaf=True,
+               output=1.)
+    g.add_node(4, state=OrderedDict([('some_feature', 'value_two'), ('slice_feature', 'good')]), split='other_feature')
+    g.add_node('default_two', is_default_leaf=True, state=OrderedDict([('some_feature', 'value_two')]), output=.1)
+
+    # connect level one with level two
+    g.add_edge(2, 3, value='bad', type='assignment')
+    g.add_edge(2, 4, value='good', type='assignment')
+    g.add_edge(2, 'default_two')
+
+    # level three
+    g.add_node(5, state=OrderedDict(
+        [('some_feature', 'value_two'), ('slice_feature', 'good'), ('other_feature', 'blah')]
+    ), is_leaf=True, output=1.)
+    g.add_node(6, state=OrderedDict(
+        [('some_feature', 'value_two'), ('slice_feature', 'good'), ('other_feature', 'blub')]
+    ), is_leaf=True, output=1.)
+    g.add_node('default_three', is_default_leaf=True,
+               state=OrderedDict([('some_feature', 'value_two'), ('slice_feature', 'good')]), output=.1)
+
+    # connect level two with level three
+    g.add_edge(4, 5, value='blah', type='assignment')
+    g.add_edge(4, 6, value='blub', type='assignment')
+    g.add_edge(4, 'default_three')
+
+    return g
+
+
+@pytest.fixture
+def small_unsliced_graph():
+    g = nx.DiGraph()
+    # root
+    g.add_node(0, split='slice_feature', state=OrderedDict())
+
+    # level one
+    g.add_node(1, state=OrderedDict([('slice_feature', 'good')]), is_leaf=True, output=5.)
+    g.add_node(2, state=OrderedDict([('slice_feature', 'bad')]), is_leaf=True, output=1.)
+    g.add_node('default_one', is_default_leaf=True, state=OrderedDict(), output=1.)
+
+    # connect root with level one
+    g.add_edge(0, 1, value='good', type='assignment')
+    g.add_edge(0, 2, value='bad', type='assignment')
+    g.add_edge(0, 'default_one')
+
+    return g
