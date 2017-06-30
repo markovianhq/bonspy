@@ -45,7 +45,7 @@ class BonsaiTree(nx.DiGraph):
     :param absence_values: (optional), Dictionary feature name -> iterable of values whose communal absence
         signals absence of the respective feature.
     :param slice_features: (optional) iterable, features to be used for slicing. The private _slice_graph method slices
-        out the part of the graph where the "slice_features" have a value that is contained in the value of the
+        out the part of the graph where the "slice_features" have a value that is equal to the value of the
         "slice_feature_values" dict.
         Moreover, it splices out the levels where the "splice_features" are split.
         The "slice" method assumes that a node never splits on the "slice_features" together with another feature.
@@ -147,7 +147,7 @@ class BonsaiTree(nx.DiGraph):
     def _prune_unwanted_children(self, node_id, slice_feature):
         prunable_children = [
             n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf') and
-            self.node[n]['state'].get(slice_feature) not in self.slice_feature_values[slice_feature]
+            self.node[n]['state'].get(slice_feature) != self.slice_feature_values[slice_feature]
         ]
         for prunable_child in prunable_children:
             self._remove_sub_graph(prunable_child)
