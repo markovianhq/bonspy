@@ -452,8 +452,8 @@ def test_negated_values(negated_values_graph):
 def test_feature_slicer(unsliced_graph, small_unsliced_graph):
     tree = BonsaiTree(
         unsliced_graph,
-        slice_feature='slice_feature',
-        slice_feature_values=('good',)
+        slice_features=('slice_feature',),
+        slice_feature_values={'slice_feature': 'good'}
     )
 
     assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
@@ -461,8 +461,8 @@ def test_feature_slicer(unsliced_graph, small_unsliced_graph):
 
     tree = BonsaiTree(
         small_unsliced_graph,
-        slice_feature='slice_feature',
-        slice_feature_values=('good',)
+        slice_features=('slice_feature',),
+        slice_feature_values={'slice_feature': 'good'}
     )
 
     assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
