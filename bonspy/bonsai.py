@@ -103,7 +103,8 @@ class BonsaiTree(nx.DiGraph):
                 self.node[node_id]['split'] = OrderedDict()
 
                 for child_id in self.successors_iter(node_id):
-                    self.node[node_id]['split'][child_id] = split
+                    if not self.node[child_id].get('is_default_leaf'):
+                        self.node[node_id]['split'][child_id] = split
 
     def _slice_graph(self):
         for slice_feature in self.slice_features:
@@ -165,6 +166,8 @@ class BonsaiTree(nx.DiGraph):
             self.node[n]['state'].get(slice_feature) != self.slice_feature_values[slice_feature]
         ]
         for prunable_child in prunable_children:
+            if self.node[node_id].get('split'):
+                del self.node[node_id]['split'][prunable_child]
             self._remove_sub_graph(prunable_child)
 
     def _remove_sub_graph(self, node):
