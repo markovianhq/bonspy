@@ -1056,3 +1056,43 @@ def small_unsliced_graph():
     g.add_edge(0, 'default_one')
 
     return g
+
+
+@pytest.fixture
+def small_unsliced_graph_single_slice_feature_value():
+    g = nx.DiGraph()
+    # root
+    g.add_node(0, split='slice_feature', state=OrderedDict())
+
+    # level one
+    g.add_node(1, state=OrderedDict([('slice_feature', 'value')]), is_leaf=True, output=5.)
+    g.add_node('default_one', is_default_leaf=True, state=OrderedDict(), output=1.)
+
+    # connect root with level one
+    g.add_edge(0, 1, value='value', type='assignment')
+    g.add_edge(0, 'default_one')
+
+    return g
+
+
+@pytest.fixture
+def small_unsliced_graph_mixed_split():
+    g = nx.DiGraph()
+    # root
+    g.add_node(
+        0, split=OrderedDict([(1, 'slice_feature'), (2, 'slice_feature'), (3, 'other_feature')]), state=OrderedDict()
+    )
+
+    # level one
+    g.add_node(1, state=OrderedDict([('slice_feature', 'good')]), is_leaf=True, output=5.)
+    g.add_node(2, state=OrderedDict([('slice_feature', 'bad')]), is_leaf=True, output=1.)
+    g.add_node(3, state=OrderedDict([('other_feature', 'value')]), is_leaf=True, output=3.)
+    g.add_node('default_one', is_default_leaf=True, state=OrderedDict(), output=1.)
+
+    # connect root with level one
+    g.add_edge(0, 1, value='good', type='assignment')
+    g.add_edge(0, 2, value='bad', type='assignment')
+    g.add_edge(0, 3, value='other_value', type='assignment')
+    g.add_edge(0, 'default_one')
+
+    return g

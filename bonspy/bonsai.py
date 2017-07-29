@@ -103,7 +103,8 @@ class BonsaiTree(nx.DiGraph):
                 self.node[node_id]['split'] = OrderedDict()
 
                 for child_id in self.successors_iter(node_id):
-                    self.node[node_id]['split'][child_id] = split
+                    if not self.node[child_id].get('is_default_leaf', self.node[child_id].get('is_default_node')):
+                        self.node[node_id]['split'][child_id] = split
 
     def _slice_graph(self):
         for slice_feature in self.slice_features:
@@ -123,7 +124,7 @@ class BonsaiTree(nx.DiGraph):
                 next_nodes = self.successors(node_id)
                 queue.extend(next_nodes)
             else:
-                self._update_sub_graph(node_id, slice_feature)
+                queue = self._update_sub_graph(node_id, slice_feature, queue)
 
     def _split_contains_slice_feature(self, node_id, slice_feature):
         try:
@@ -132,24 +133,41 @@ class BonsaiTree(nx.DiGraph):
         except KeyError:  # default leaf or leaf
             return False
 
-    def _update_sub_graph(self, node_id, slice_feature):
+    def _update_sub_graph(self, node_id, slice_feature, queue):
         self._prune_unwanted_children(node_id, slice_feature)
 
         default_child = next((n for n in self.successors_iter(node_id) if self.node[n].get('is_default_leaf')))
-        normal_child = next((n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf')))
-        assert len([n for n in self.successors_iter(node_id) if n not in {default_child, normal_child}]) == 0
 
-        if self.node[normal_child].get('is_leaf'):
-            self._remove_leaves_and_update_parent_default(node_id, slice_feature, normal_child, default_child)
-        else:
-            self._splice_out_node(normal_child, slice_feature, slicing=True)
+        try:
+            normal_child = self._get_normal_child(node_id, slice_feature)
+            other_children = [n for n in self.successors_iter(node_id) if n not in {normal_child, default_child}]
+            queue.extend(other_children)
+
+            if self.node[normal_child].get('is_leaf'):
+                self._remove_leaves_and_update_parent_default(
+                    node_id, slice_feature, normal_child, default_child, other_children
+                )
+            else:
+                self._splice_out_node(normal_child, slice_feature, slicing=True)
+
+        except StopIteration:  # slice feature value not present in subtree
+            other_children = [n for n in self.successors_iter(node_id) if n != default_child]
+            if other_children:
+                queue.extend(other_children)
+            else:
+                self._cut_single_default_child(node_id, default_child)
+
+        return queue
 
     def _prune_unwanted_children(self, node_id, slice_feature):
         prunable_children = [
             n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf') and
+            slice_feature in self.node[n]['state'] and
             self.node[n]['state'].get(slice_feature) != self.slice_feature_values[slice_feature]
         ]
         for prunable_child in prunable_children:
+            if self.node[node_id].get('split'):
+                del self.node[node_id]['split'][prunable_child]
             self._remove_sub_graph(prunable_child)
 
     def _remove_sub_graph(self, node):
@@ -160,18 +178,30 @@ class BonsaiTree(nx.DiGraph):
             self.remove_node(current_node)
             queue.extend(next_nodes)
 
-    def _remove_leaves_and_update_parent_default(self, node_id, slice_feature, normal_child, default_child):
-        del self.node[node_id]['split']
-        self._remove_feature_from_state(node_id, slice_feature)
-        self.node[node_id] = self.node[normal_child].copy()
+    def _get_normal_child(self, node_id, slice_feature):
+        return next((
+            n for n in self.successors_iter(node_id) if not self.node[n].get('is_default_leaf') and
+            slice_feature in self.node[n]['state']
+        ))
+
+    def _remove_leaves_and_update_parent_default(self, node_id, slice_feature, normal_child,
+                                                 default_child, other_children):
+        if not other_children:
+            del self.node[node_id]['split']
+            self._remove_feature_from_state(node_id, slice_feature)
+            self.node[node_id] = self.node[normal_child].copy()
+
+            self.remove_edge(node_id, default_child)
+            self.remove_node(default_child)
+        else:
+            del self.node[node_id]['split'][normal_child]
+            self._remove_feature_from_state(node_id, slice_feature)
+            self.node[default_child] = self.node[normal_child].copy()
+            del self.node[default_child]['is_leaf']
+            self.node[default_child]['is_default_leaf'] = True
 
         self.remove_edge(node_id, normal_child)
         self.remove_node(normal_child)
-
-        self.remove_edge(node_id, default_child)
-        self.remove_node(default_child)
-
-        self.node[node_id]['is_leaf'] = True
 
     def _remove_feature_from_state(self, source, feature):
         for node_id in self.bfs_nodes(source):
@@ -194,6 +224,15 @@ class BonsaiTree(nx.DiGraph):
 
         self.remove_edge(parent_id, node_id)
         self.remove_node(node_id)
+
+    def _cut_single_default_child(self, parent_id, default_child):
+        if not self.node[parent_id].get('is_default_node'):
+            self.node[parent_id] = self.node[default_child]
+            del self.node[parent_id]['is_default_leaf']
+            self.node[parent_id]['is_leaf'] = True
+        else:
+            self.node[parent_id] = self.node[default_child]
+        self.remove_node(default_child)
 
     def _replace_absent_values(self):
         root_id = self._get_root()
@@ -647,7 +686,10 @@ class BonsaiTree(nx.DiGraph):
     def _get_feature(self, parent, child, state_node):
         feature = self.node[parent].get('split')
         if isinstance(feature, dict):
-            feature = feature[child]
+            try:
+                feature = feature[child]
+            except KeyError:
+                assert self.node[child].get('is_default_leaf', self.node[child].get('is_default_node', False))
         if isinstance(feature, (list, tuple)):
             return self._get_formatted_multidimensional_compound_feature(feature, state_node)
         elif '.' in feature:

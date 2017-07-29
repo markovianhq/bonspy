@@ -457,7 +457,7 @@ def test_feature_slicer(unsliced_graph, small_unsliced_graph):
     )
 
     assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
-    assert all(['slice_feature' not in tree.edge[n].get('split', dict()).values() for n in tree.node])
+    assert all(['slice_feature' not in tree.node[n].get('split', dict()).values() for n in tree.node])
 
     tree = BonsaiTree(
         small_unsliced_graph,
@@ -466,5 +466,42 @@ def test_feature_slicer(unsliced_graph, small_unsliced_graph):
     )
 
     assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
-    assert all(['slice_feature' not in tree.edge[n].get('split', dict()).values() for n in tree.node])
+    assert all(['slice_feature' not in tree.node[n].get('split', dict()).values() for n in tree.node])
     assert tree.node[0]['output'] == 5.
+
+
+def test_feature_slicer_single_wrong_slice_feature_value(small_unsliced_graph_single_slice_feature_value):
+    tree = BonsaiTree(
+        small_unsliced_graph_single_slice_feature_value,
+        slice_features=('slice_feature',),
+        slice_feature_values={'slice_feature': 'value'}
+    )
+
+    assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
+    assert all(['slice_feature' not in tree.node[n].get('split', dict()).values() for n in tree.node])
+    assert tree.node[0]['output'] == 5.
+
+
+def test_feature_slicer_single_correct_slice_feature_value(small_unsliced_graph_single_slice_feature_value):
+    tree = BonsaiTree(
+        small_unsliced_graph_single_slice_feature_value,
+        slice_features=('slice_feature',),
+        slice_feature_values={'slice_feature': 'other_value'}
+    )
+
+    assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
+    assert all(['slice_feature' not in tree.node[n].get('split', dict()).values() for n in tree.node])
+    assert tree.node[0]['output'] == 1.
+
+
+def test_feature_slicer_mixed_split(small_unsliced_graph_mixed_split):
+    tree = BonsaiTree(
+        small_unsliced_graph_mixed_split,
+        slice_features=('slice_feature',),
+        slice_feature_values={'slice_feature': 'good'}
+    )
+
+    assert all(['slice_feature' not in tree.node[n].get('state', set()) for n in tree.node])
+    assert all(['slice_feature' not in tree.node[n].get('split', dict()).values() for n in tree.node])
+    assert 'output' not in tree.node[0]
+    assert tree.node['default_one']['output'] == 5.
