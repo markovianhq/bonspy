@@ -103,7 +103,7 @@ class BonsaiTree(nx.DiGraph):
                 self.node[node_id]['split'] = OrderedDict()
 
                 for child_id in self.successors_iter(node_id):
-                    if not self.node[child_id].get('is_default_leaf'):
+                    if not self.node[child_id].get('is_default_leaf', self.node[child_id].get('is_default_node')):
                         self.node[node_id]['split'][child_id] = split
 
     def _slice_graph(self):
@@ -686,7 +686,10 @@ class BonsaiTree(nx.DiGraph):
     def _get_feature(self, parent, child, state_node):
         feature = self.node[parent].get('split')
         if isinstance(feature, dict):
-            feature = feature[child]
+            try:
+                feature = feature[child]
+            except KeyError:
+                assert self.node[child].get('is_default_leaf', self.node[child].get('is_default_node', False))
         if isinstance(feature, (list, tuple)):
             return self._get_formatted_multidimensional_compound_feature(feature, state_node)
         elif '.' in feature:
