@@ -721,6 +721,8 @@ class BonsaiTree(nx.DiGraph):
     def _get_formatted_compound_feature(self, feature, state_node):
         object_, attribute = feature.split('.')
         try:
+            attribute, value = attribute.split('__')
+        except ValueError:
             value = self.node[state_node]['state'][object_]
         except KeyError:
             value = self.__getattribute__(object_)
