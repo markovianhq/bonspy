@@ -723,9 +723,11 @@ class BonsaiTree(nx.DiGraph):
         try:
             attribute, value = attribute.split('__')
         except ValueError:
-            value = self.node[state_node]['state'][object_]
-        except KeyError:
-            value = self.__getattribute__(object_)
+            try:
+                value = self.node[state_node]['state'][object_]
+            except KeyError:
+                value = self.__getattribute__(object_)
+
         feature = '{feature}[{value}].{attribute}'.format(
             feature=object_,
             value=value,
