@@ -188,7 +188,9 @@ class EstimatorBidder(Bidder):
         state = graph.node[leaf]['state']
         bid = self.base_bid
         for estimator in self.estimators:
-            import ipdb; ipdb.set_trace()
             x = estimator.dict_vectorizer(state, **self.__dict__)
-            bid *= estimator.predict(x)
+            try:
+                bid *= estimator.predict(x)[0]
+            except TypeError:
+                bid *= estimator.predict(x)
         return {'output': bid}
